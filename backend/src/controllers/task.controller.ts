@@ -181,3 +181,22 @@ export const getAllProjectTasks = asyncHandler(
       .json(new ApiResponse(200, tasks || [], "Tasks fetched successfully"));
   },
 );
+
+export const getAllTasks = asyncHandler(
+  async (_, res: Response) => {
+    const tasks = await Task.aggregate([
+      {
+        $match: {},
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+    ]);
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, tasks || [], "Successfuly fetch all tasks"),
+      );
+  },
+);
