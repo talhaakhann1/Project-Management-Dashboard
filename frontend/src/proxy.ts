@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export default async function proxy(request: NextRequest) {
   const token=request.cookies.get('accessToken')?.value;
-  console.log(token);
   
   const url = request.nextUrl;
   if (
