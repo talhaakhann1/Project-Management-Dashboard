@@ -2,7 +2,6 @@ import { ApiError } from "../utils/ApiError.js";
 import mongoose from "mongoose";
 export const errorHandler = (err, req, res, next) => {
     let error = err;
-    // Check if the error is an instance of an ApiError class which extends native Error class
     if (!(error instanceof ApiError)) {
         const statusCode = error.statusCode || (error instanceof mongoose.Error ? 400 : 500);
         const message = error?.message || "Something went wrong";

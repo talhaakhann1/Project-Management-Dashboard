@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.routes.js";
 import projectRouter from "./routes/project.routes.js";
 import taskRouter from "./routes/task.routes.js";
+import dashboardRouter from "./routes/dashboard.routes.js";
 const app = express();
 dotenv.config({
     path: "./.env"
@@ -24,12 +25,10 @@ app.use(express.static("/public"));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.json({ limit: "16kb" }));
 app.use(cookieParser());
-app.use(errorHandler);
 app.use('/', userRouter);
 app.use('/api/projects', projectRouter);
 app.use('/api/tasks', taskRouter);
-app.get("/health-check", (req, res) => {
-    res.json('All working good');
-});
+app.use('/api/dashboard', dashboardRouter);
+app.use(errorHandler);
 export default app;
 //# sourceMappingURL=app.js.map

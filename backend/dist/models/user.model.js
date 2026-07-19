@@ -1,8 +1,8 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
 import crypto from "crypto";
-import { AvailableSocialLogins, AvailableUserRoles, UserLoginType, UserRolesEnum, } from "../constant.js";
+import { AvailableUserRoles, UserRolesEnum, } from "../constant.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt, {} from "jsonwebtoken";
 const userSchema = new Schema({
     fullName: {
         type: String,
@@ -40,10 +40,6 @@ const userSchema = new Schema({
     refreshToken: {
         type: String,
     },
-    isActive: {
-        type: Boolean,
-        required: true,
-    },
 }, { timestamps: true });
 userSchema.pre("save", async function () {
     if (!this.isModified("password"))
@@ -53,26 +49,27 @@ userSchema.pre("save", async function () {
 userSchema.methods.isPasswordValid = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
-const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY ?? "15m";
-userSchema.methods.generateAccessToken = function () {
-    const accessTokenExpiry = process.env.ACCESS_TOKEN_EXPIRY ?? "1d";
+userSchema.methods.generateAccessToken = function (rememberMe = false) {
+    const expiresIn = (rememberMe
+        ? process.env.ACCESS_TOKEN_EXPIRY_LONG || "7d"
+        : process.env.ACCESS_TOKEN_EXPIRY || "1d");
     return jwt.sign({
         _id: this._id,
         email: this.email,
         fullName: this.fullName,
     }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: accessTokenExpiry,
+        expiresIn
     });
 };
-userSchema.methods.generateRefreshToken = function () {
-    const refreshTokenExpiry = process.env.ACCESS_TOKEN_EXPIRY ?? "30d";
+userSchema.methods.generateRefreshToken = function (rememberMe = false) {
+    const expiresIn = (rememberMe
+        ? process.env.REFRESH_TOKEN_EXPIRY_LONG || "30d"
+        : process.env.REFRESH_TOKEN_EXPIRY || "1d");
     return jwt.sign({
         _id: this._id,
         email: this.email,
         fullName: this.fullName,
-    }, process.env.REFRESH_TOKEN_SECRET, {
-        expiresIn: refreshTokenExpiry,
-    });
+    }, process.env.REFRESH_TOKEN_SECRET, { expiresIn });
 };
 userSchema.methods.generateTemporaryToken = function () {
     const unHashedToken = crypto.randomBytes(32).toString("hex");

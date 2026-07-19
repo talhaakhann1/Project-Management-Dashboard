@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import type { Request, Response } from "express";
 import { Project } from "../models/project.model.js";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { Task } from "../models/task.model.js";
 import { TaskStatusEnum } from "../types/enums/task.enum.js";
 
@@ -11,12 +11,79 @@ interface ProjectParams {
   projectId?: string;
 }
 
+export const commonTaskAggregationStages = [
+  {
+    $lookup: {
+      from: "users",
+      localField: "assignees",
+      foreignField: "_id",
+      as: "assignees",
+      pipeline: [
+        {
+          $project: {
+            _id: 0,
+            id: { $toString: "$_id" },
+            fullName: 1,
+            avatar: 1,
+          },
+        },
+      ],
+    },
+  },
+  {
+    $lookup: {
+      from: "projects",
+      localField: "projectId",
+      foreignField: "_id",
+      as: "project",
+      pipeline: [
+        {
+          $project: {
+            _id: 0,
+            id: { $toString: "$_id" },
+            name: 1,
+          },
+        },
+      ],
+    },
+  },
+  {
+    $unwind: { path: "$project", preserveNullAndEmptyArrays: true },
+  },
+  {
+    $project: {
+      id: { $toString: "$_id" },
+      _id: 0,
+      title: 1,
+      description: 1,
+      status: 1,
+      project: 1,
+      priority: 1,
+      assignees: {
+        $map: {
+          input: "$assignees",
+          as: "assignee",
+          in: {
+            id: "$$assignee.id",
+            fullName: "$$assignee.fullName",
+            avatar: "$$assignee.avatar",
+          },
+        },
+      },
+      dueDate: 1,
+      createdAt: 1,
+      updatedAt: 1,
+    },
+  },
+];
+
 export const createTask = asyncHandler(
   async (req: Request<ProjectParams>, res: Response) => {
-    const { title, description, status, priority, dueDate, assignees, tags } =
+    const { title, description, priority, dueDate, assignees, projectId } =
       req.body;
-    const { projectId } = req.params;
     const userId = req.user._id;
+
+    console.log("req", req.body);
 
     if (!projectId) {
       throw new ApiError(404, "Project ID is required");
@@ -31,72 +98,82 @@ export const createTask = asyncHandler(
       throw new ApiError(404, "Project not found or access denied");
     }
 
-    const existTask=await Task.findOne({
-      title
-    })
+    const existTask = await Task.findOne({
+      title,
+    });
 
-    if(existTask){
-      throw new ApiError(400,"Task with this name already exist")
+    if (existTask) {
+      throw new ApiError(400, "Task with this name already exist");
     }
 
-    const createdTask = await Task.create({
+    const task = await Task.create({
       title,
       description,
-      status: status || TaskStatusEnum.TODO,
+      status: TaskStatusEnum.TODO,
       priority,
       dueDate,
       createdBy: userId,
       projectId: projectId,
       assignees,
-      tags,
     });
-    if (!createdTask) {
+    if (!task) {
       throw new ApiError(500, "Something went wrong while creating new task");
     }
+    const [createdTask] = await Task.aggregate([
+      {
+        $match: {
+          _id: task._id,
+        },
+      },
+      ...commonTaskAggregationStages,
+    ]);
+    if (!createdTask) {
+      throw new ApiError(500, "Failed to fetch newly created task");
+    }
+
     return res
       .status(200)
       .json(new ApiResponse(201, createdTask, "Successfully created new task"));
   },
 );
 
-export const deleteTask = asyncHandler(async (req: Request, res: Response) => {
-  const { taskId } = req.params;
+export const deleteTaskById = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { taskId } = req.params;
 
-  if (!taskId) {
-    throw new ApiError(400, "Task ID is required");
-  }
+    if (!taskId) {
+      throw new ApiError(400, "Task ID is required");
+    }
 
-  const task = await Task.findById(taskId);
+    const task = await Task.findById(taskId);
 
-  if (!task) {
-    throw new ApiError(404, "Task not found ");
-  }
+    if (!task) {
+      throw new ApiError(404, "Task not found ");
+    }
 
-  const isAssignee = task.assignees.some(
-    (id) => id.toString() === req.user._id.toString(),
-  );
+    const isTaskCreater = await Task.findOne({
+      _id: task._id,
+      createdBy: req.user._id,
+    });
 
-  const isTaskCreater = await Task.findOne({
-    createdBy: req.user._id,
-  });
+    if (!isTaskCreater) {
+      throw new ApiError(409, "Access denied");
+    }
 
-  if (!isTaskCreater && !isAssignee) {
-    throw new ApiError(409, "Access denied");
-  }
+    const deleteTask = await Task.findByIdAndDelete(taskId);
 
-  const deleteTask = await Task.findByIdAndDelete(taskId);
-
-  if (!deleteTask) {
-    throw new ApiError(404, "Project does not exist");
-  }
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "Task deleted successfully"));
-});
+    if (!deleteTask) {
+      throw new ApiError(404, "Project does not exist");
+    }
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Task deleted successfully"));
+  },
+);
 
 export const updateTaskDetails = asyncHandler(
   async (req: Request, res: Response) => {
-    const { title, description, status, priority, dueDate } = req.body;
+    const { title, description, priority, dueDate } = req.body;
 
     const { taskId } = req.params;
 
@@ -129,7 +206,6 @@ export const updateTaskDetails = asyncHandler(
           title,
           description,
           dueDate,
-          status: status || TaskStatusEnum.TODO,
           priority: priority,
         },
       },
@@ -156,21 +232,20 @@ export const getAllProjectTasks = asyncHandler(
 
     if (!existedProject) {
       throw new ApiError(404, "Project ID is requied");
-
     }
 
     const isProjectMember = existedProject.members.some(
       (id) => id.toString() === req.user._id.toString(),
     );
 
-    if (!isProjectMember ) {
+    if (!isProjectMember) {
       throw new ApiError(400, "Access denied");
     }
 
     const tasks = await Task.aggregate([
       {
         $match: {
-          projectId:new mongoose.Types.ObjectId(existedProject._id),
+          projectId: new mongoose.Types.ObjectId(existedProject._id),
         },
       },
       { $sort: { createdAt: -1 } },
@@ -182,21 +257,236 @@ export const getAllProjectTasks = asyncHandler(
   },
 );
 
-export const getAllTasks = asyncHandler(
-  async (_, res: Response) => {
-    const tasks = await Task.aggregate([
-      {
-        $match: {},
+export const getAllTasks = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user._id;
+  const tasks = await Task.aggregate([
+    {
+      $match: {
+        assignees: new mongoose.Types.ObjectId(userId),
       },
-      {
-        $sort: { createdAt: -1 },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "assignees",
+        foreignField: "_id",
+        as: "assignees",
+        pipeline: [
+          {
+            $project: {
+              id: 1,
+              fullName: 1,
+              avatar: 1,
+            },
+          },
+        ],
       },
+    },
+    {
+      $lookup: {
+        from: "projects",
+        localField: "projectId",
+        foreignField: "_id",
+        as: "project",
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: { $toString: "$_id" },
+              name: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: { path: "$project", preserveNullAndEmptyArrays: true },
+    },
+    {
+      $project: {
+        id: { $toString: "$_id" },
+        _id: 0,
+        title: 1,
+        description: 1,
+        status: 1,
+        project: 1,
+        priority: 1,
+        assignees: {
+          $map: {
+            input: "$assignees",
+            as: "assignee",
+            in: {
+              id: { $toString: "$$assignee._id" },
+              fullName: "$$assignee.fullName",
+              avatar: "$$assignee.avatar",
+            },
+          },
+        },
+        tags: 1,
+        dueDate: 1,
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    },
+    {
+      $sort: { createdAt: -1 },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, tasks || [], "Successfuly fetch all tasks"));
+});
+
+export const changeTaskStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { taskStatus } = req.body;
+    const { taskId } = req.params;
+
+    const task = await Task.findByIdAndUpdate(
+      taskId,
+      {
+        $set: {
+          status: taskStatus,
+        },
+      },
+      { new: true },
+    );
+
+    if (!task) {
+      throw new ApiError(400, "Task does not exist");
+    }
+
+    const [updatedTask] = await Task.aggregate([
+      {
+        $match: {
+          _id: task._id,
+        },
+      },
+      ...commonTaskAggregationStages,
     ]);
+    if (!updatedTask) {
+      throw new ApiError(500, "Failed to fetch newly updated task");
+    }
 
     return res
       .status(200)
       .json(
-        new ApiResponse(200, tasks || [], "Successfuly fetch all tasks"),
+        new ApiResponse(
+          200,
+          updatedTask,
+          "Project status updated successfully",
+        ),
       );
   },
 );
+
+export const getTaskById = asyncHandler(async (req: Request, res: Response) => {
+  const { taskId } = req.params;
+  console.log(taskId);
+
+  if (
+    !taskId ||
+    typeof taskId !== "string" ||
+    !Types.ObjectId.isValid(taskId)
+  ) {
+    throw new ApiError(400, "Invalid task id");
+  }
+
+  const [task] = await Task.aggregate([
+    {
+      $match: {
+        _id: new Types.ObjectId(taskId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "assignees",
+        foreignField: "_id",
+        as: "assignees",
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: { $toString: "$_id" },
+              fullName: 1,
+              avatar: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "createdBy",
+        foreignField: "_id",
+        as: "createdBy",
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: { $toString: "$_id" },
+              fullName: 1,
+              avatar: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "projects",
+        localField: "projectId",
+        foreignField: "_id",
+        as: "project",
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: { $toString: "$_id" },
+              name: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: { path: "$project", preserveNullAndEmptyArrays: true },
+    },
+    { $unwind: { path: "$createdBy", preserveNullAndEmptyArrays: true } },
+    {
+      $project: {
+        _id: 0,
+        id: { $toString: "$_id" },
+        title: 1,
+        description: 1,
+        status: 1,
+        project:1,
+        priority: 1,
+        assignees: {
+          $map: {
+            input: "$assignees",
+            as: "assignee",
+            in: {
+              id: "$$assignee.id",
+              fullName: "$$assignee.fullName",
+              avatar: "$$assignee.avatar",
+            },
+          },
+        },
+        dueDate: 1,
+        createdBy: 1,
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    },
+  ]);
+  if (!task) {
+    throw new ApiError(404, "Task not found");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, task, "Successfully get taskById"));
+});

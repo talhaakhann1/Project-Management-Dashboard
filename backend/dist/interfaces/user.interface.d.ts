@@ -10,9 +10,8 @@ export interface IUser extends Document {
     refreshToken: string;
     accessToken: string;
     role: string;
-    isActive: boolean;
-    generateAccessToken(): string;
-    generateRefreshToken(): string;
+    generateAccessToken(rememberMe: boolean): string;
+    generateRefreshToken(rememberMe: boolean): string;
     generateTemporaryToken(): {};
     isPasswordValid(password: string): Promise<boolean>;
 }

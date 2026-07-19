@@ -1,27 +1,32 @@
 import { z } from 'zod';
-import { AvailableProjectColour } from '../types/enums/project.enum.js';
+import { ProjectStatus } from '../types/enums/project.enum.js';
 const createProjectSchema = z.object({
     name: z.string()
         .min(4, 'name must be at least 4 characters.')
-        .max(32, 'name must be at least 32 characters.'),
+        .max(100, 'name must be at least 100 characters.'),
     description: z.string()
         .min(8, 'name must be at least 8 characters.')
-        .max(300, 'name must be at least 300 characters.'),
-    colour: z.enum(AvailableProjectColour),
+        .max(10000, 'name must be at least 10000 characters.'),
+    dueDate: z.string(),
+    colour: z.string(),
     members: z.array(z.string())
 });
 const updateProjectSchema = z.object({
     name: z
         .string()
         .min(4, "name must be at least 4 characters.")
-        .max(16, "name must be at least 16 characters.")
+        .max(100, "name must be at least 100 characters.")
         .optional(),
     description: z
         .string()
-        .min(8, "name must be at least 8 characters.")
-        .max(300, "name must be at least 300 characters.")
+        .min(10, "name must be at least 10 characters.")
+        .max(10000, "name must be at least 10000 characters.")
         .optional(),
-    colour: z.enum(AvailableProjectColour).optional()
+    dueDate: z.string(),
+    colour: z.string().optional()
 });
-export { createProjectSchema, updateProjectSchema };
+const updateProjectStatus = z.object({
+    projectStatus: z.enum(ProjectStatus)
+});
+export { createProjectSchema, updateProjectSchema, updateProjectStatus };
 //# sourceMappingURL=project.schema.js.map

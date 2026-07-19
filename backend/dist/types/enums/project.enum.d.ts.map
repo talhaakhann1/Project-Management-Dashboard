@@ -1,1 +1,1 @@
-{"version":3,"file":"project.enum.d.ts","sourceRoot":"","sources":["../../../src/types/enums/project.enum.ts"],"names":[],"mappings":"AAAA,oBAAY,sBAAsB;IAChC,IAAI,YAAY;IAChB,IAAI,YAAY;IAChB,KAAK,YAAY;IACjB,MAAM,YAAY;IAClB,MAAM,YAAY;CACnB;AACD,oBAAY,aAAa;IACvB,MAAM,WAAW;IACjB,QAAQ,aAAa;IACrB,SAAS,cAAc;CACxB"}
+{"version":3,"file":"project.enum.d.ts","sourceRoot":"","sources":["../../../src/types/enums/project.enum.ts"],"names":[],"mappings":"AACA,oBAAY,aAAa;IACvB,MAAM,WAAW;IACjB,QAAQ,aAAa;IACrB,SAAS,cAAc;CACxB"}

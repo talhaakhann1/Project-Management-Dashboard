@@ -6,7 +6,6 @@ export interface ITask extends Document {
     status: string;
     dueDate: Date;
     createdBy: Types.ObjectId;
-    tags: string[];
     projectId: Types.ObjectId;
     assignees: Types.ObjectId[];
 }

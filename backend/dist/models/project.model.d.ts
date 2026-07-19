@@ -37,10 +37,7 @@ export declare const projectSchema: mongoose.Schema<IProject, mongoose.Model<IPr
     }, "id"> & {
         id: string;
     }>;
-    thumbnail?: mongoose.SchemaDefinitionProperty<{
-        url: String;
-        localPath: String;
-    } | undefined, IProject, mongoose.Document<unknown, {}, IProject, {
+    status?: mongoose.SchemaDefinitionProperty<ProjectStatus, IProject, mongoose.Document<unknown, {}, IProject, {
         id: string;
     }, mongoose.DefaultSchemaOptions> & Omit<IProject & Required<{
         _id: Types.ObjectId;
@@ -49,7 +46,7 @@ export declare const projectSchema: mongoose.Schema<IProject, mongoose.Model<IPr
     }, "id"> & {
         id: string;
     }>;
-    status?: mongoose.SchemaDefinitionProperty<ProjectStatus, IProject, mongoose.Document<unknown, {}, IProject, {
+    dueDate?: mongoose.SchemaDefinitionProperty<Date, IProject, mongoose.Document<unknown, {}, IProject, {
         id: string;
     }, mongoose.DefaultSchemaOptions> & Omit<IProject & Required<{
         _id: Types.ObjectId;

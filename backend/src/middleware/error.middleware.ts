@@ -13,7 +13,6 @@ export const errorHandler = (
        next:NextFunction):Response => {
     let error = err;
 
-    // Check if the error is an instance of an ApiError class which extends native Error class
     if (!(error instanceof ApiError)) {
 
         const statusCode =

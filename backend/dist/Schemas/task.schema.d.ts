@@ -4,17 +4,18 @@ declare const createTaskSchema: z.ZodObject<{
     title: z.ZodString;
     description: z.ZodString;
     dueDate: z.ZodCoercedDate<unknown>;
-    status: z.ZodEnum<typeof TaskStatusEnum>;
+    projectId: z.ZodString;
     priority: z.ZodEnum<typeof TaskPriorityEnum>;
     assignees: z.ZodArray<z.ZodString>;
-    tags: z.ZodArray<z.ZodString>;
 }, z.core.$strip>;
 declare const updateTaskSchema: z.ZodObject<{
     title: z.ZodOptional<z.ZodString>;
     description: z.ZodOptional<z.ZodString>;
     dueDate: z.ZodCoercedDate<unknown>;
-    status: z.ZodOptional<z.ZodEnum<typeof TaskStatusEnum>>;
     priority: z.ZodOptional<z.ZodEnum<typeof TaskPriorityEnum>>;
 }, z.core.$strip>;
-export { createTaskSchema, updateTaskSchema };
+declare const updateTaskStatus: z.ZodObject<{
+    taskStatus: z.ZodEnum<typeof TaskStatusEnum>;
+}, z.core.$strip>;
+export { createTaskSchema, updateTaskSchema, updateTaskStatus };
 //# sourceMappingURL=task.schema.d.ts.map

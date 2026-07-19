@@ -5,8 +5,8 @@ import { ProjectStatus } from "../types/enums/project.enum.js";
 export interface IProject extends Document{
     name:string;
     description:string;
-    thumbnail?:{ url: String; localPath: String };
     status: ProjectStatus;
+    dueDate:Date;
     colour:string;
     createdBy:Types.ObjectId;
     members:Types.ObjectId[];

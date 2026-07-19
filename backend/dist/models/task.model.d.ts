@@ -45,7 +45,7 @@ export declare const taskSchema: mongoose.Schema<ITask, mongoose.Model<ITask, an
     }, "id"> & {
         id: string;
     }>;
-    createdBy?: mongoose.SchemaDefinitionProperty<Types.ObjectId, ITask, mongoose.Document<unknown, {}, ITask, {
+    dueDate?: mongoose.SchemaDefinitionProperty<Date, ITask, mongoose.Document<unknown, {}, ITask, {
         id: string;
     }, mongoose.DefaultSchemaOptions> & Omit<ITask & Required<{
         _id: Types.ObjectId;
@@ -54,7 +54,7 @@ export declare const taskSchema: mongoose.Schema<ITask, mongoose.Model<ITask, an
     }, "id"> & {
         id: string;
     }>;
-    projectId?: mongoose.SchemaDefinitionProperty<Types.ObjectId, ITask, mongoose.Document<unknown, {}, ITask, {
+    createdBy?: mongoose.SchemaDefinitionProperty<Types.ObjectId, ITask, mongoose.Document<unknown, {}, ITask, {
         id: string;
     }, mongoose.DefaultSchemaOptions> & Omit<ITask & Required<{
         _id: Types.ObjectId;
@@ -72,16 +72,7 @@ export declare const taskSchema: mongoose.Schema<ITask, mongoose.Model<ITask, an
     }, "id"> & {
         id: string;
     }>;
-    dueDate?: mongoose.SchemaDefinitionProperty<Date, ITask, mongoose.Document<unknown, {}, ITask, {
-        id: string;
-    }, mongoose.DefaultSchemaOptions> & Omit<ITask & Required<{
-        _id: Types.ObjectId;
-    }> & {
-        __v: number;
-    }, "id"> & {
-        id: string;
-    }>;
-    tags?: mongoose.SchemaDefinitionProperty<string[], ITask, mongoose.Document<unknown, {}, ITask, {
+    projectId?: mongoose.SchemaDefinitionProperty<Types.ObjectId, ITask, mongoose.Document<unknown, {}, ITask, {
         id: string;
     }, mongoose.DefaultSchemaOptions> & Omit<ITask & Required<{
         _id: Types.ObjectId;

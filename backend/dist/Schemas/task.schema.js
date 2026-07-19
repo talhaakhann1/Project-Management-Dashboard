@@ -4,31 +4,32 @@ const createTaskSchema = z.object({
     title: z
         .string()
         .min(4, "name must be at least 4 characters.")
-        .max(16, "name must be at least 16 characters."),
+        .max(100, "name must be at least 100 characters."),
     description: z
         .string()
-        .min(8, "name must be at least 8 characters.")
-        .max(300, "name must be at least 300 characters."),
-    dueDate: z.coerce.date(), //send data as string
-    status: z.enum(TaskStatusEnum),
+        .min(10, "name must be at least 10 characters.")
+        .max(10000, "name must be at least 300 characters."),
+    dueDate: z.coerce.date(),
+    projectId: z.string(),
     priority: z.enum(TaskPriorityEnum),
     assignees: z.array(z.string()),
-    tags: z.array(z.string()),
 });
 const updateTaskSchema = z.object({
     title: z
         .string()
         .min(4, "name must be at least 4 characters.")
-        .max(16, "name must be at least 16 characters.")
+        .max(100, "name must be at least 100 characters.")
         .optional(),
     description: z
         .string()
-        .min(8, "name must be at least 8 characters.")
-        .max(300, "name must be at least 300 characters.")
+        .min(10, "name must be at least 10 characters.")
+        .max(10000, "name must be at least 10000 characters.")
         .optional(),
     dueDate: z.coerce.date(),
-    status: z.enum(TaskStatusEnum).optional(),
     priority: z.enum(TaskPriorityEnum).optional(),
 });
-export { createTaskSchema, updateTaskSchema };
+const updateTaskStatus = z.object({
+    taskStatus: z.enum(TaskStatusEnum)
+});
+export { createTaskSchema, updateTaskSchema, updateTaskStatus };
 //# sourceMappingURL=task.schema.js.map

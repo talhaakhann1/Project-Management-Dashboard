@@ -39,10 +39,7 @@ export const taskSchema = new Schema<ITask>(
         type: Schema.Types.ObjectId,
         ref: "User",
       },
-    ],
-    tags:{
-      type:[String]
-    },
+    ]
   },
   { timestamps: true },
 );

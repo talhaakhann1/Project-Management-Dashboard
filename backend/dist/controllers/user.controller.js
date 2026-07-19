@@ -5,14 +5,17 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { UserRolesEnum } from "../constant.js";
 import { uploadAtCloudinary } from "../utils/cloudinary.js";
 import { getLocalPath, removeLocalFile } from "../utils/helper.js";
-const generateAccessAndRefreshToken = async (userId) => {
+import strict from "assert/strict";
+import { verifyJwt } from "../middleware/auth.middleware.js";
+import jwt from "jsonwebtoken";
+const generateAccessAndRefreshToken = async (userId, rememberMe = false) => {
     try {
         const user = await User.findById(userId);
         if (!user) {
             throw new ApiError(404, "User not found");
         }
-        const accessToken = user.generateAccessToken();
-        const refreshToken = user.generateRefreshToken();
+        const accessToken = user.generateAccessToken(rememberMe);
+        const refreshToken = user.generateRefreshToken(rememberMe);
         user.refreshToken = refreshToken;
         await user.save({ validateBeforeSave: false });
         return { accessToken, refreshToken };
@@ -34,7 +37,6 @@ export const registerUser = asyncHandler(async (req, res) => {
         email,
         password,
         role: UserRolesEnum.USER,
-        isActive: false,
     });
     const createdUser = await User.findById(user._id).select("-password -refreshToken");
     if (!createdUser) {
@@ -44,8 +46,37 @@ export const registerUser = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(201, createdUser, "User registered successfully"));
 });
+export const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies.refreshToken;
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "Invalid access token");
+    }
+    try {
+        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+        const user = await User.findById(decodedToken._id);
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+        if (incomingRefreshToken !== user.refreshToken) {
+            throw new ApiError(401, "Invalid access token");
+        }
+        const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
+        const options = {
+            httpOnly: true,
+            secure: true,
+        };
+        return res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json(new ApiResponse(200, {}, "Access Token Refreshed"));
+    }
+    catch (error) {
+        throw new ApiError(401, error?.message || "Invalid refresh token");
+    }
+});
 export const loginUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
     const user = await User.findOne({
         email,
     });
@@ -57,16 +88,29 @@ export const loginUser = asyncHandler(async (req, res) => {
     if (!isPasswordValid) {
         throw new ApiError(404, "Invalid user credentials");
     }
-    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(userId);
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(userId, rememberMe);
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
-    const options = {
+    const accessTokenMaxAge = rememberMe
+        ? 7 * 24 * 60 * 60 * 1000
+        : 24 * 60 * 60 * 1000;
+    const refreshTokenMaxAge = rememberMe
+        ? 30 * 24 * 60 * 60 * 1000
+        : 24 * 60 * 60 * 1000;
+    const cookieOptions = {
         httpOnly: true,
         secure: true,
+        sameSite: "strict",
     };
     return res
         .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, {
+        ...cookieOptions,
+        maxAge: accessTokenMaxAge,
+    })
+        .cookie("refreshToken", refreshToken, {
+        ...cookieOptions,
+        maxAge: refreshTokenMaxAge,
+    })
         .json(new ApiResponse(200, loggedInUser, "Successfully loggedIn user"));
 });
 export const logOutUser = asyncHandler(async (req, res) => {
@@ -115,6 +159,7 @@ export const changeUserAvatar = asyncHandler(async (req, res) => {
     if (!updatedUser) {
         throw new ApiError(400, "Faild to update the user avatar");
     }
+    console.log(updatedUser.avatar.localPath);
     removeLocalFile(updatedUser.avatar.localPath);
     return res
         .status(200)
@@ -135,7 +180,7 @@ export const getAvailableUsers = asyncHandler(async (_, res) => {
         },
         {
             $project: {
-                _id: 1,
+                id: { $toString: "$_id" },
                 fullName: 1,
             },
         },

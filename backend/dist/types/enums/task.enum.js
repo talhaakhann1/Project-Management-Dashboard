@@ -1,15 +1,15 @@
 export var TaskPriorityEnum;
 (function (TaskPriorityEnum) {
-    TaskPriorityEnum["LOW"] = "Low";
-    TaskPriorityEnum["MEDUIM"] = "Medium";
-    TaskPriorityEnum["HIGH"] = "High";
-    TaskPriorityEnum["URGENT"] = "Urgent";
+    TaskPriorityEnum["LOW"] = "low";
+    TaskPriorityEnum["MEDUIM"] = "medium";
+    TaskPriorityEnum["HIGH"] = "high";
+    TaskPriorityEnum["URGENT"] = "urgent";
 })(TaskPriorityEnum || (TaskPriorityEnum = {}));
 export var TaskStatusEnum;
 (function (TaskStatusEnum) {
-    TaskStatusEnum["TODO"] = "Todo";
-    TaskStatusEnum["IN_PROGRESS"] = "In Progress";
-    TaskStatusEnum["DONE"] = "Done";
-    TaskStatusEnum["CANCELLED"] = "Cancelled";
+    TaskStatusEnum["TODO"] = "todo";
+    TaskStatusEnum["IN_PROGRESS"] = "in_progress";
+    TaskStatusEnum["DONE"] = "done";
+    TaskStatusEnum["CANCELLED"] = "cancelled";
 })(TaskStatusEnum || (TaskStatusEnum = {}));
 //# sourceMappingURL=task.enum.js.map

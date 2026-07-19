@@ -2,14 +2,12 @@ import mongoose, { Document, Schema, Model } from "mongoose";
 import type { IUser } from "../interfaces/user.interface.ts";
 import crypto from "crypto";
 import {
-  AvailableSocialLogins,
   AvailableUserRoles,
-  UserLoginType,
   UserRolesEnum,
 } from "../constant.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import type { NextFunction } from "express";
+import jwt, { type SignOptions } from "jsonwebtoken";
+
 
 const userSchema = new Schema<IUser>(
   {
@@ -49,10 +47,6 @@ const userSchema = new Schema<IUser>(
     refreshToken: {
       type: String,
     },
-    isActive: {
-      type: Boolean,
-      required: true,
-    },
   },
   { timestamps: true },
 );
@@ -67,13 +61,11 @@ userSchema.methods.isPasswordValid=async function(password:string){
   return await bcrypt.compare(password,this.password)
 }
 
-const ACCESS_TOKEN_EXPIRY =
-  process.env.ACCESS_TOKEN_EXPIRY ?? "15m";
 
-userSchema.methods.generateAccessToken = function () {
-  const accessTokenExpiry: jwt.SignOptions["expiresIn"] = 
-  (process.env.ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"]) ?? "1d";
-
+userSchema.methods.generateAccessToken = function (rememberMe:boolean = false) {
+  const expiresIn = (rememberMe
+    ? process.env.ACCESS_TOKEN_EXPIRY_LONG || "7d"
+    : process.env.ACCESS_TOKEN_EXPIRY || "1d") as NonNullable<SignOptions["expiresIn"]>;
   return jwt.sign(
     {
       _id: this._id,
@@ -82,27 +74,23 @@ userSchema.methods.generateAccessToken = function () {
     },
     process.env.ACCESS_TOKEN_SECRET as string ,
     {
-      expiresIn: accessTokenExpiry,
+      expiresIn
     },
   );
 };
 
-
-
-userSchema.methods.generateRefreshToken = function () {
-  const refreshTokenExpiry: jwt.SignOptions["expiresIn"] = 
-  (process.env.ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"]) ?? "30d";
+userSchema.methods.generateRefreshToken = function (rememberMe:boolean = false) {
+  const expiresIn = (rememberMe
+    ? process.env.REFRESH_TOKEN_EXPIRY_LONG || "30d"
+    : process.env.REFRESH_TOKEN_EXPIRY || "1d") as NonNullable<SignOptions["expiresIn"]>;
   return jwt.sign(
     {
-
       _id: this._id,
       email: this.email,
       fullName: this.fullName,
     },
-    process.env.REFRESH_TOKEN_SECRET!,
-    {
-      expiresIn:refreshTokenExpiry,
-    },
+    process.env.REFRESH_TOKEN_SECRET as string,
+    {expiresIn},
   );
 };
 
