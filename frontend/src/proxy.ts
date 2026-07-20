@@ -6,8 +6,8 @@ export default async function proxy(request: NextRequest) {
   const url = request.nextUrl;
   if (
     token &&
-    (url.pathname == "sign-in" ||
-      url.pathname == "sign-up" ||
+    (url.pathname == "/sign-in" ||
+      url.pathname == "/sign-up" ||
       url.pathname == "/")
   ) {
     return NextResponse.redirect(new URL("/dashboard", request.url));

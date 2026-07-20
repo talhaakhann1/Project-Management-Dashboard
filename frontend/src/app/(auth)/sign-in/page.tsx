@@ -44,7 +44,7 @@ export default function LoginPage() {
     try {
 
       const response = await api.post<ApiResponse<User>>('/sign-in', data)
-
+       console.log(response);
       dispatch(login(response.data.data))
       router.replace("/dashboard")
       
