@@ -15,12 +15,12 @@ import { upload } from "../middleware/multer.middleware.js";
 
 const router=Router()
 
-router.route('/sign-up').post(validate(signUpSchema),registerUser)
-router.route('/sign-in').post(validate(signInSchema),loginUser)
-router.route('/logout').get(verifyJwt,logOutUser)
-router.route('/refresh-token').get(verifyJwt,refreshAccessToken)
+router.route('/auth/sign-up').post(validate(signUpSchema),registerUser)
+router.route('/auth/sign-in').post(validate(signInSchema),loginUser)
+router.route('/auth/logout').get(verifyJwt,logOutUser)
+router.route('/auth/refresh-token').get(verifyJwt,refreshAccessToken)
 router.route('/change-avatar').post(verifyJwt,upload.single("avatar"),changeUserAvatar)
-router.route('/get-user').get(verifyJwt,getCurrentUser)
+router.route('/auth/get-user').get(verifyJwt,getCurrentUser)
 router.route('/get-users').get(verifyJwt,getAvailableUsers)
 
 export default router

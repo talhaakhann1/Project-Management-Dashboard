@@ -40,7 +40,7 @@ app.use(express.json({limit:"16kb"}))
 app.use(cookieParser())
 
 
-app.use('/',userRouter)
+app.use('/api',userRouter)
 
 app.use("/health-check", (req, res) => {
   res.json({ status: "OK" });
