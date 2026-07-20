@@ -1,6 +1,6 @@
 import {z} from "zod";
 
-export const signupSchema=z.object({
+export const signUpSchema=z.object({
     fullName:z.string().min(8,"fullName must be atleast 8 letters")
     .regex(
       /^[A-Za-z]+(?:[' -][A-Za-z]+)+$/,

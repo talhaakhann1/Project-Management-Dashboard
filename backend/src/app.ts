@@ -15,10 +15,17 @@ dotenv.config({
    path:"./.env"
 })
 
-app.use(cors({
-  origin: process.env.CORS_ORIGIN,
-  credentials: true,
-}));
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.CORS_ORIGIN,
+].filter((origin): origin is string => Boolean(origin));
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
