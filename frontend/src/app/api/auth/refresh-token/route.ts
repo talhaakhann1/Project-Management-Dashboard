@@ -4,7 +4,7 @@ const BACKEND_URL = process.env.BACKEND_URL!;
 
 export async function POST(request: NextRequest) {
   const backendResponse = await fetch(
-    `${BACKEND_URL}/api/v1/auth/refresh-token`,
+    `${BACKEND_URL}/api/auth/refresh-token`,
     {
       method: "POST",
       headers: {

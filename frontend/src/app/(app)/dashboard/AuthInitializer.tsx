@@ -16,7 +16,7 @@ function AuthInitializer({ children }:
 
         async function reloadUser() {
             try {
-                const res = await api.get("/get-user")
+                const res = await api.get("/api/auth/get-user")
                 if (!isMounted) return;
                 dispatch(login(res.data.data))
             } catch (error) {

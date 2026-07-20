@@ -24,7 +24,7 @@ async function handler(
   }
 
   const backendResponse = await fetch(
-    `${BACKEND_URL}/api/v1/${endpoint}`,
+    `${BACKEND_URL}/api/${endpoint}`,
     {
       method: request.method,
       headers,

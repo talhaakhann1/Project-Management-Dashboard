@@ -3,7 +3,7 @@ import { store } from "@/store/authStore";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: "/api",
   withCredentials: true,
   timeout: 10000,
 });
@@ -47,7 +47,7 @@ api.interceptors.response.use(
 
       try {
         
-        await api.post("/refresh-token");
+        await api.post("/api/auth/refresh-token");
 
         processQueue(null);
         return api(originalRequest);

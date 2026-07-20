@@ -112,7 +112,7 @@ export default function SettingsProfile({
       const formData = new FormData;
       formData.append("avatar", avatarFile)
 
-      const response = await api.post("/change-avatar", formData)
+      const response = await api.post("/api/change-avatar", formData)
 
       dispatch(updateUserDetails(response.data.data))
       toast.message(response.data.message)

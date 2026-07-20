@@ -51,7 +51,7 @@ export function NavUser({
   const logoutHandler = async () => {
     setIsSubmitting
     try {
-      const response = await api.get("/logout")
+      const response = await api.get("/api/auth/logout")
       console.log(response);
 
       dispatch(logout())
