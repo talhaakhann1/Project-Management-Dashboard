@@ -27,7 +27,7 @@ export function DashboardHeader() {
         </Button> 
         <ThemeSwitch iconSize={16} />
         <Link
-          href="https://github.com/"
+          href="https://github.com/talhaakhann"
           target="_blank"
           rel="noopener noreferrer"
           className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "size-8")}
