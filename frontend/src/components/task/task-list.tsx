@@ -252,7 +252,7 @@ function TaskItem({
     onStatusChange,
     onDelete,
 }: TaskItemProps) {
-    console.log("Task item", task);
+
     const router = useRouter()
     const overdue = isOverdue(task.dueDate);
 
