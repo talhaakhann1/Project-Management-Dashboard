@@ -167,7 +167,6 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const logOutUser = asyncHandler(async (req: Request, res: Response) => {
-  console.log("Logout controller reached");
 
   const userId = req.user._id;
 
@@ -204,7 +203,7 @@ export const changeUserAvatar = asyncHandler(
     if (!user) {
       throw new ApiError(404, "User not found");
     }
-    const avatarLocalPath = getLocalPath(req.file.filename);
+    const avatarLocalPath = req.file.path;
 
     const avatar = await uploadAtCloudinary(avatarLocalPath);
 
@@ -229,8 +228,6 @@ export const changeUserAvatar = asyncHandler(
     if (!updatedUser) {
       throw new ApiError(400, "Faild to update the user avatar");
     }
-
-    removeLocalFile(avatarLocalPath);
 
     return res
       .status(200)
