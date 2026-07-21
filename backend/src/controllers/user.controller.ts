@@ -226,9 +226,8 @@ export const changeUserAvatar = asyncHandler(
     if (!updatedUser) {
       throw new ApiError(400, "Faild to update the user avatar");
     }
-    console.log(updatedUser.avatar.localPath);
 
-    removeLocalFile(updatedUser.avatar.localPath);
+    removeLocalFile(avatarLocalPath);
 
     return res
       .status(200)
