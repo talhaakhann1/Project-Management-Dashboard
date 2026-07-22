@@ -123,7 +123,6 @@ export function TodaysTasks({ todayTasks }: todayTasksProps) {
               >
                 All projects
               </DropdownMenuCheckboxItem>
-              <DropdownMenuSeparator />
               {todayTasks.map((proj) => (
                 <DropdownMenuCheckboxItem
                   key={proj.id}

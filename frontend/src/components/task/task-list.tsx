@@ -396,7 +396,6 @@ function TaskItem({
                                     <CheckCircle2 className="size-4" />
                                     Mark as Done
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
