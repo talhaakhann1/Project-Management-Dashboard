@@ -1,14 +1,17 @@
 export interface User {
-  _id: string;
+  id: string;
   fullName: string;
   email: string;
-  avatar: {
-    url: string;
-    localPath?: string;
-  };
+  password: string;
+  avatar: { url: string; localPath: string };
+  refreshToken: string;
+  accessToken: string;
   role: string;
   isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
+
 
 import {z} from 'zod'
 
