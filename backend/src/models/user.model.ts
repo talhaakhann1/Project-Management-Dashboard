@@ -38,6 +38,9 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String
     },
+    isActive:{
+      type:Boolean
+    },
     role: {
       type: String,
       enum: AvailableUserRoles,

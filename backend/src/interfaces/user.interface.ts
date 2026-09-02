@@ -5,6 +5,7 @@ export interface IUser extends Document {
   email: string;
   password:string;
   avatar: { url: string; localPath: string };
+  isActive:boolean;
   refreshToken:string;
   accessToken:string;
   role:string;
