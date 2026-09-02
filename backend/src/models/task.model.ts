@@ -12,7 +12,7 @@ export const taskSchema = new Schema<ITask>(
       type: String,
       required: true,
     },
-    priority:{
+    priority: {
       type: String,
       required: true,
     },
@@ -25,9 +25,9 @@ export const taskSchema = new Schema<ITask>(
       required: true,
       default: Date.now(),
     },
-    createdBy:{
+    createdBy: {
       type: Schema.Types.ObjectId,
-        ref: "User",
+      ref: "User",
     },
     projectId: {
       type: Schema.Types.ObjectId,
@@ -39,12 +39,14 @@ export const taskSchema = new Schema<ITask>(
         type: Schema.Types.ObjectId,
         ref: "User",
       },
-    ]
+    ],
   },
   { timestamps: true },
 );
 
-export const Task: Model<ITask> = mongoose.model<ITask>(
-  "Task",
-  taskSchema,
-);
+taskSchema.index({ projectId: 1 });
+taskSchema.index({ assignees: 1, dueDate: 1 });
+taskSchema.index({ createdBy: 1 });
+taskSchema.index({ dueDate: 1 });
+
+export const Task: Model<ITask> = mongoose.model<ITask>("Task", taskSchema);

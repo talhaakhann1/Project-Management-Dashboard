@@ -42,6 +42,8 @@ export const projectSchema = new Schema<IProject>(
   { timestamps: true },
 );
 
+projectSchema.index({ createdBy: 1 });
+
 export const Project: Model<IProject> = mongoose.model<IProject>(
   "Project",
   projectSchema,
