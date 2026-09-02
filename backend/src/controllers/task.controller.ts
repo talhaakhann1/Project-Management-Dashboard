@@ -83,8 +83,6 @@ export const createTask = asyncHandler(
       req.body;
     const userId = req.user._id;
 
-    console.log("req", req.body);
-
     if (!projectId) {
       throw new ApiError(404, "Project ID is required");
     }
@@ -265,69 +263,7 @@ export const getAllTasks = asyncHandler(async (req: Request, res: Response) => {
         assignees: new mongoose.Types.ObjectId(userId),
       },
     },
-    {
-      $lookup: {
-        from: "users",
-        localField: "assignees",
-        foreignField: "_id",
-        as: "assignees",
-        pipeline: [
-          {
-            $project: {
-              id: 1,
-              fullName: 1,
-              avatar: 1,
-            },
-          },
-        ],
-      },
-    },
-    {
-      $lookup: {
-        from: "projects",
-        localField: "projectId",
-        foreignField: "_id",
-        as: "project",
-        pipeline: [
-          {
-            $project: {
-              _id: 0,
-              id: { $toString: "$_id" },
-              name: 1,
-            },
-          },
-        ],
-      },
-    },
-    {
-      $unwind: { path: "$project", preserveNullAndEmptyArrays: true },
-    },
-    {
-      $project: {
-        id: { $toString: "$_id" },
-        _id: 0,
-        title: 1,
-        description: 1,
-        status: 1,
-        project: 1,
-        priority: 1,
-        assignees: {
-          $map: {
-            input: "$assignees",
-            as: "assignee",
-            in: {
-              id: { $toString: "$$assignee._id" },
-              fullName: "$$assignee.fullName",
-              avatar: "$$assignee.avatar",
-            },
-          },
-        },
-        tags: 1,
-        dueDate: 1,
-        createdAt: 1,
-        updatedAt: 1,
-      },
-    },
+    ...commonTaskAggregationStages,
     {
       $sort: { createdAt: -1 },
     },
@@ -365,6 +301,7 @@ export const changeTaskStatus = asyncHandler(
       },
       ...commonTaskAggregationStages,
     ]);
+    
     if (!updatedTask) {
       throw new ApiError(500, "Failed to fetch newly updated task");
     }
@@ -383,7 +320,6 @@ export const changeTaskStatus = asyncHandler(
 
 export const getTaskById = asyncHandler(async (req: Request, res: Response) => {
   const { taskId } = req.params;
-  console.log(taskId);
 
   if (
     !taskId ||

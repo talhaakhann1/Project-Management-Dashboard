@@ -11,6 +11,8 @@ import strict from "assert/strict";
 import { verifyJwt } from "../middleware/auth.middleware.js";
 import jwt from "jsonwebtoken";
 import type { TokenPayload } from "../types/global.js";
+import { Project } from "../models/project.model.js";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshToken = async (
   userId: Types.ObjectId,
@@ -135,9 +137,23 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     rememberMe,
   );
 
-  const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken",
-  );
+ const [loggedInUser] = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(user._id),
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        id: "$_id",
+        fullName: 1,
+        email: 1,
+       isActive:1,
+        avatar: 1,
+      },
+    },
+  ]);
 
   const accessTokenMaxAge = rememberMe
     ? 7 * 24 * 60 * 60 * 1000
@@ -167,14 +183,20 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const logOutUser = asyncHandler(async (req: Request, res: Response) => {
-
   const userId = req.user._id;
 
-  const user = await User.findByIdAndUpdate(userId, {
-    $unset: {
-      refreshToken: 1,
-    },
-  });
+  const user = await User.findByIdAndUpdate(
+     userId,
+     {
+       $unset: {
+         refreshToken: 1,
+       },
+       $set: {
+         isActive: false,
+       },
+     },
+     { new: true },
+   );
 
   if (!user) {
     throw new ApiError(404, "User not found");
@@ -237,9 +259,26 @@ export const changeUserAvatar = asyncHandler(
 
 export const getCurrentUser = asyncHandler(
   async (req: Request, res: Response) => {
+    const [user] = await User.aggregate([
+          {
+            $match: {
+              _id: new mongoose.Types.ObjectId(req.user._id),
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              id: "$_id",
+              fullName: 1,
+              email: 1,
+              isActive:1,
+              avatar: 1,
+            },
+          },
+        ]);
     return res
       .status(200)
-      .json(new ApiResponse(200, req.user, "Current user fetch successfully"));
+      .json(new ApiResponse(200, user, "Current user fetch successfully"));
   },
 );
 
@@ -265,3 +304,34 @@ export const getAvailableUsers = asyncHandler(async (_, res: Response) => {
       new ApiResponse(200, users || [], "Successfuly fetch available user"),
     );
 });
+
+export const getTeamMembers = asyncHandler(
+  async (req: Request, res: Response) => {
+    const memberIds = await Project.distinct("members", {
+      members: req.user._id,
+    });
+
+    const members = await User.aggregate([
+      {
+        $match: {
+          _id: { $in: memberIds },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          id: { $toString: "$_id" },
+          fullName: 1,
+          email: 1,
+          avatar: 1,
+          isActive:1,
+          createdAt:1
+        },
+      },
+    ]);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, members, "Team members fetched successfully"));
+  },
+);
