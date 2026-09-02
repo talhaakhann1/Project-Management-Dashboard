@@ -130,74 +130,14 @@ export const getAllProjects = asyncHandler(
           members: new mongoose.Types.ObjectId(userId),
         },
       },
-
+      ...commonProjectAggregationStages,
       {
-        $lookup: {
-          from: "users",
-          localField: "members",
-          foreignField: "_id",
-          as: "members",
-          pipeline: [
-            {
-              $project: {
-                _id: 1,
-                fullName: 1,
-                avatar: 1,
-              },
-            },
-          ],
-        },
-      },
+        $sort:{
+          createdBy:-1
+        }
+      }
+    ])
 
-      {
-        $lookup: {
-          from: "users",
-          localField: "createdBy",
-          foreignField: "_id",
-          as: "createdBy",
-          pipeline: [
-            {
-              $project: {
-                _id: 1,
-                fullName: 1,
-                avatar: 1,
-              },
-            },
-          ],
-        },
-      },
-
-      {
-        $project: {
-          id: { $toString: "$_id" },
-          _id: 0,
-          name: 1,
-          description: 1,
-          colour: 1,
-          status: 1,
-          createdAt: 1,
-          updatedAt: 1,
-          createdBy: 1,
-          members: {
-            $map: {
-              input: "$members",
-              as: "member",
-              in: {
-                id: { $toString: "$$member._id" },
-                fullName: "$$member.fullName",
-                avatar: "$$member.avatar",
-              },
-            },
-          },
-        },
-      },
-
-      {
-        $sort: {
-          createdAt: -1,
-        },
-      },
-    ]);
     return res
       .status(200)
       .json(
@@ -448,5 +388,8 @@ export const changeProjectStatus = asyncHandler(
           "Project status updated successfully",
         ),
       );
-  },
+    }
 );
+  
+
+
