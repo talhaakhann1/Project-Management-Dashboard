@@ -11,6 +11,7 @@ const FEATURES = [
 ];
 
 export default function OnboardingSplit() {
+  
   return (
     <div className="min-h-screen w-full bg-[#0a0e17] flex items-center justify-center p-6">
       <div className="w-full max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-[#0a0e17] shadow-2xl">
