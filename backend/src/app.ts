@@ -15,6 +15,8 @@ dotenv.config({
    path:"./.env"
 })
 
+console.log("CORS_ORIGIN =", process.env.CORS_ORIGIN);
+
 const allowedOrigins = [
   "http://localhost:3000",
   process.env.CORS_ORIGIN,

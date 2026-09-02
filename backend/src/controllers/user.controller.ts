@@ -88,7 +88,7 @@ export const refreshAccessToken = asyncHandler(
       }
 
       if (incomingRefreshToken !== user.refreshToken) {
-        throw new ApiError(401, "Invalid access token");
+        throw new ApiError(401, "Invalid refresh token");
       }
 
       const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
