@@ -1,49 +1,46 @@
 "use client"
+import { useEffect, useState } from "react";
 import api from '@/lib/axios'
-import { login, logout, setLoading } from '@/store/authSlice';
+import { login, logout } from '@/store/authSlice';
 import { useAppDispatch, useAppSelector } from '@/store/hook';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react'
+import { useRouter, usePathname } from 'next/navigation';
 import { AppLoader } from '@/components/skeletons/App-loader';
+import { useDispatch } from "react-redux";
+import axios from "axios";
 
-function AuthInitializer({ children }:
-    { children: React.ReactNode }) {
-    const dispatch = useAppDispatch();
-    const { loading } = useAppSelector((state) => state.auth);
+const PROTECTED_PREFIXES = ["/dashboard"];
+const AUTH_ROUTES = ["/sign-in", "/sign-up", "/verify"];
 
-
-    useEffect(() => {
-
-        async function reloadUser() {
-            try {
-                const res = await api.get("/get-user")
-                dispatch(login(res.data.data))
-            } catch (error) {
-                if (axios.isAxiosError(error) && error.response?.status === 401) {
-                    dispatch(logout());
-                }
-                else {
-                    console.error(error);
-                }
-            } finally {
-                dispatch(setLoading(false))
-            }
+function AuthInitializer({ children }: { children: React.ReactNode }) {
+  const dispatch = useDispatch()
+  const [checked, setChecked] = useState(false)
+  useEffect(() => {
+    async function checkAuth() {
+      let cancelled = false
+      try {
+        const res = await api.get("/get-user")
+        if (!cancelled) {
+          dispatch(login(res.data.data))
         }
-        reloadUser()
-
-
-    }, [dispatch])
-
-    if (loading) {
-        return <AppLoader />
+      } catch (error) {
+        if (!cancelled) {
+          dispatch(logout())
+        }
+      } finally {
+        if (!cancelled) {
+          setChecked(true)
+        }
+      }
+      return () => {
+        setChecked(true)
+      }
     }
-
-    return (
-        <>
-            {children}
-        </>
-    )
+    checkAuth()
+  }, [dispatch])
+  if (!checked) {
+    return null
+  }
+  return <>{children}</>
 }
 
-
-export default AuthInitializer
+export default AuthInitializer;
