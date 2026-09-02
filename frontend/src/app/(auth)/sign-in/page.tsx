@@ -17,7 +17,7 @@ import { AxiosError } from "axios"
 import { Checkbox } from "@/components/ui/checkbox";
 import { login } from "@/store/authSlice"
 import { store } from "@/store/authStore"
-import  ApiResponse from "@/types/ApiResponse"
+import ApiResponse from "@/types/ApiResponse"
 import { User } from "@/Schemas/user.schema"
 
 
@@ -43,17 +43,16 @@ export default function LoginPage() {
     try {
 
       const response = await api.post<ApiResponse<User>>('/sign-in', data)
-       console.log(response);
       dispatch(login(response.data.data))
       router.replace("/dashboard")
-      
+
       toast.message(response.data.message)
     } catch (error) {
       const AxiosError = error as AxiosError<ApiResponse<unknown>>
 
       let errorMessage = AxiosError.response?.data.message
-     console.log(errorMessage);
-     
+      console.log(errorMessage);
+
       toast("Signup Failed",
         {
           description: errorMessage
@@ -174,13 +173,16 @@ export default function LoginPage() {
             </a>
           </FieldDescription>
         </Field>
-          <Field orientation={"horizontal"} className="justify-center">
-            <FieldLabel
-              htmlFor={"accept-terms"}
-              className="whitespace-nowrap font-normal text-muted-foreground [&_a]:font-medium [&_a]:text-foreground [&_a]:underline"
-              dangerouslySetInnerHTML={{ __html: legal }}
-            />
-          </Field>
+        <p className="px-2 text-center text-muted-foreground text-xs leading-relaxed break-words">
+          By signing in, you agree to our{" "}
+          <a className="underline underline-offset-4" href="/terms">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a className="underline underline-offset-4" href="/privacy">
+            Privacy Policy
+          </a>
+        </p>
       </FieldGroup>
 
     </form>

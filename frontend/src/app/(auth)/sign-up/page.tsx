@@ -53,7 +53,6 @@ const AppleIcon = (
   </svg>
 );
 
-const legalText = 'By signing in, you agree to our <a href="https://beste.co">Terms of Service</a> and <a href="https://beste.co">Privacy Policy</a>.'
 
 
 export default function SignUpPage() {
@@ -72,7 +71,7 @@ export default function SignUpPage() {
     }
   })
 
-  const termsLabel = 'I agree to the <a href="">Terms of Service</a> and <a href="">Privacy Policy</a>'
+  const termsLabel = 'I agree to the <a href="">Terms of Service</a>'
 
   const onSubmit = async (data: z.infer<typeof signupSchema>) => {
 

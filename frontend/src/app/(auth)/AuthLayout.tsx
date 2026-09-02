@@ -1,34 +1,34 @@
-"use client";
+// "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAppSelector } from "@/store/hook";
-import { AppLoader } from "@/components/skeletons/App-loader";
+// import { useEffect } from "react";
+// import { useRouter } from "next/navigation";
+// import { useAppSelector } from "@/store/hook";
+// import { AppLoader } from "@/components/skeletons/App-loader";
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { loading, isLoggedIn } = useAppSelector(
-    (state) => state.auth
-  );
+// export default function AuthLayout({
+//   children,
+// }: {
+//   children: React.ReactNode;
+// }) {
+//   const { loading, isLoggedIn } = useAppSelector(
+//     (state) => state.auth
+//   );
 
-  const router = useRouter();
+//   const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && isLoggedIn) {
-      router.replace("/dashboard");
-    }
-  }, [loading, isLoggedIn]);
+//   useEffect(() => {
+//     if (!loading && isLoggedIn) {
+//       router.replace("/dashboard");
+//     }
+//   }, [loading, isLoggedIn]);
 
-  if (loading) {
-    return <AppLoader />;
-  }
+//   if (loading) {
+//     return <AppLoader />;
+//   }
 
-  if (isLoggedIn) {
-    return null;
-  }
+//   if (isLoggedIn) {
+//     return ;
+//   }
 
-  return <>{children}</>;
-}
+//   return <>{children}</>;
+// }
