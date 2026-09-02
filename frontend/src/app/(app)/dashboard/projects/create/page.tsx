@@ -112,7 +112,7 @@ function CreateProject() {
 
 
     useEffect(() => {
-        if (!user || !user._id) {
+        if (!user || !user.id) {
             return;
         }
 

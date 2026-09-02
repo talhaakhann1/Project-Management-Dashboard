@@ -58,7 +58,7 @@ function CreateTask() {
     const router = useRouter()
 
     useEffect(() => {
-        if (!user || !user._id) {
+        if (!user || !user.id) {
             return;
         }
     })
