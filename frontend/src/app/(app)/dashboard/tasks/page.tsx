@@ -35,7 +35,7 @@ export function page() {
     const user = useAppSelector((state) => state.auth.user);
 
     useEffect(() => {
-        if (!user || !user._id) {
+        if (!user || !user.id) {
             return;
         }
     })
@@ -46,11 +46,6 @@ export function page() {
             const response = await api.get("/api/tasks")
             setTasks(response.data.data)
 
-            if (response.data.data.length === 0) {
-                // empty no res
-            } else {
-                toast.message(response.data.message)
-            }
         } catch (error) {
             const axiosError = error as AxiosError<ApiResponse<unknown>>
             const errorMessage = axiosError.response?.data?.message
@@ -76,19 +71,19 @@ export function page() {
             )))
             toast.message(response.data.message)
         } catch (error) {
-            handleApiError(error, "Failed update the task status");
+            const axiosError = error as AxiosError<ApiResponse<unknown>>
+            const errorMessage = axiosError.response?.data?.message
+
+            toast.error(errorMessage || "Failed to update task status")
         }
     }, [])
 
 
-    if (isLoading) {
-        return (
-            <TasksListSkeleton />
-        )
-    }
+  
     return (
         <TaskList
             tasks={tasks}
+            loading={isLoading}
             onTaskStatus={updateTaskStatus}
         />
     );

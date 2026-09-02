@@ -55,13 +55,11 @@ function ProjectIdPage() {
 
 
   return (
-
     <ProjectDetail
       isLoading={isLoading}
       project={project}
       onDelete={deleteProject}
     />
-
   );
 }
 

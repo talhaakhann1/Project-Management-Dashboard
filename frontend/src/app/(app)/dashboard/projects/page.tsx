@@ -24,7 +24,7 @@ export default function ProjectPage() {
   const user = useAppSelector((state) => state.auth.user);
 
   useEffect(() => {
-    if (!user || !user._id) {
+    if (!user || !user.id) {
       return;
     }
 
@@ -35,10 +35,6 @@ export default function ProjectPage() {
         const response = await api.get("/api/projects")
         setProjects(response.data.data)
 
-        if (response.data.data.length === 0) {
-        } else {
-          toast.message(response.data.message)
-        }
       } catch (error) {
         const axiosError = error as AxiosError<ApiResponse<unknown>>
         const errorMessage = axiosError.response?.data?.message
@@ -65,25 +61,24 @@ export default function ProjectPage() {
         ))
       toast.message(response.data.message);
     } catch (error) {
-      handleApiError(error, "Failed to updated project status");
+      const axiosError = error as AxiosError<ApiResponse<unknown>>
+      const errorMessage = axiosError.response?.data?.message
+
+      toast.error(errorMessage || "Failed to update project status")
     }
   }, [])
 
 
-  if (!user || !user._id) {
+  if (!user || !user.id) {
     return <div></div>;
   }
 
-  if (isLoading) {
-    return (
-      <ProjectsListSkeleton />
-    )
-  }
 
   return (
     <>
       <TeamProjects
         projects={projects}
+        loading={isLoading}
         onUpdateStatus={updatedProjectStatus}
       />
     </>
