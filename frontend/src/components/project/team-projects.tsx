@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
+import {
     CardContent,
     CardDescription,
     CardTitle,
@@ -49,6 +49,7 @@ import * as  z from "zod";
 import { createProjectSchema } from "@/Schemas/project.schema";
 import { Project } from "@/types/enums/project.enum";
 import { useRouter } from "next/navigation";
+import { ProjectsListSkeleton } from "../skeletons/projects-list-skeleton";
 
 export interface TeamProject {
     id: string;
@@ -84,7 +85,8 @@ export interface availableMembers {
 }
 
 export interface TeamProjectsProps {
-    projects: Project[];
+    projects?: Project[] | [];
+    loading?: boolean;
     availableMembers?: availableMembers[];
     currentUserId?: string;
     onCreate?: (data: {
@@ -93,7 +95,7 @@ export interface TeamProjectsProps {
         colour?: string,
         members: string[]
     }) => Promise<void>;
-    onUpdateStatus?: (projectId: string,status:string) => Promise<void>;
+    onUpdateStatus?: (projectId: string, status: string) => Promise<void>;
     onUpdate?: (projectId: string, data: Partial<TeamProject>) => Promise<void>;
     onDelete?: (projectId: string) => Promise<void>;
     onSelect?: (projectId: string) => void;
@@ -134,6 +136,7 @@ function getInitials(name?: string): string {
 
 export default function TeamProjects({
     projects = [],
+    loading,
     availableMembers = [],
     currentUserId,
     onCreate,
@@ -149,7 +152,7 @@ export default function TeamProjects({
     const [isCreating, setIsCreating] = useState(false);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-    const router=useRouter()
+    const router = useRouter()
 
 
     const filteredProjects = projects?.filter((project) => {
@@ -187,17 +190,17 @@ export default function TeamProjects({
         }
     };
 
-    const onStatusChange=async(projectId:string,status:string)=>{
+    const onStatusChange = async (projectId: string, status: string) => {
         console.log(projectId)
         setActionLoading(projectId);
         try {
-            await onUpdateStatus?.(projectId,status);
+            await onUpdateStatus?.(projectId, status);
         } finally {
             setActionLoading(null);
         }
     }
 
-    const handleSelect=async(projectId: string)=>{
+    const handleSelect = async (projectId: string) => {
         setActionLoading(projectId);
         try {
             router.push(`/dashboard/projects/${projectId}`)
@@ -232,13 +235,13 @@ export default function TeamProjects({
                         </CardDescription>
                     </div>
                     <Button
-                                        className="w-full shrink-0 md:w-auto"
-                                        type="button"
-                                        onClick={() => router.push("/dashboard/projects/create")}
-                                    >
-                                        <Plus className="size-4" />
-                                        New Project
-                                    </Button>
+                        className="w-full shrink-0 md:w-auto"
+                        type="button"
+                        onClick={() => router.push("/dashboard/projects/create")}
+                    >
+                        <Plus className="size-4" />
+                        New Project
+                    </Button>
                 </div>
                 {showSearch && (
                     <InputGroup>
@@ -257,36 +260,40 @@ export default function TeamProjects({
                 )}
             </div>
             <CardContent>
-                {filteredProjects.length === 0 ? (
+                {loading ? (
+                    <ProjectsListSkeleton />
+                ) : filteredProjects.length === 0 ? (
                     <Empty>
                         <EmptyHeader>
                             <EmptyMedia variant="icon">
                                 <Folder className="size-6" />
                             </EmptyMedia>
+
                             <EmptyTitle>
                                 {searchQuery ? "No projects found" : "No projects yet"}
                             </EmptyTitle>
                         </EmptyHeader>
                     </Empty>
                 ) : (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" >
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {filteredProjects.map((project) => (
-
                             <div
-                                className="group flex flex-col justify-between gap-3 rounded-lg border bg-card p-4 transition-colors hover:border-primary hover:shadow-sm "
+                                className="group flex flex-col justify-between gap-3 rounded-lg border bg-card p-4 transition-colors hover:border-primary hover:shadow-sm"
                                 key={project.id}
-                                onClick={()=>router.push(`/dashboard/projects/${project.id}`)}
+                                onClick={() =>
+                                    router.push(`/dashboard/projects/${project.id}`)
+                                }
                             >
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="flex items-center gap-2">
                                         <div
                                             className="flex size-10 items-center justify-center rounded-lg"
                                             style={{ backgroundColor: `${project.colour}20` }}
-                                        >   
-                                                <Folder
-                                                    className="size-5"
-                                                    style={{ color: project.colour }}
-                                                />   
+                                        >
+                                            <Folder
+                                                className="size-5"
+                                                style={{ color: project.colour }}
+                                            />
                                         </div>
                                         <div className="flex min-w-0 flex-1 flex-col gap-2">
                                             <h3 className="wrap-break-word font-semibold text-base leading-tight">
@@ -299,61 +306,61 @@ export default function TeamProjects({
                                             )}
                                         </div>
                                     </div>
-                                     <div onClick={(e) => e.stopPropagation()}>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger aria-label={`More options for ${project.name}`}
-                                            className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent transition-colors"
-                                        >
-                                            {actionLoading === project.id ? (
-                                                <Loader2 className="size-4 animate-spin" />
-                                            ) : (
-                                                <MoreVertical className="size-4" />
-                                            )}
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent
-                                            align="end"
-                                            sideOffset={4}
-                                        >
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger aria-label={`More options for ${project.name}`}
+                                                className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent transition-colors"
+                                            >
+                                                {actionLoading === project.id ? (
+                                                    <Loader2 className="size-4 animate-spin" />
+                                                ) : (
+                                                    <MoreVertical className="size-4" />
+                                                )}
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                align="end"
+                                                sideOffset={4}
+                                            >
                                                 <DropdownMenuItem onClick={() => handleSelect(project.id)}>
                                                     <FolderOpen className="size-4" />
                                                     Open
                                                 </DropdownMenuItem>
-                                            {onUpdateStatus && (
-                                                <>
-                                                    <DropdownMenuItem onClick={() => onStatusChange(project.id, "active")}>
-                                                        <Circle className="size-4" />
-                                                        Mark as Active
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        onClick={() => onStatusChange(project.id, "archived")}
-                                                    >
-                                                        <Clock className="size-4" />
-                                                        Mark as Achieved
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => onStatusChange(project.id, "completed")}>
-                                                        <CheckCircle2 className="size-4" />
-                                                        Mark as Completed
-                                                    </DropdownMenuItem>
-                                                </>
-                                            )}
-                                            {onDelete && (
-                                                <>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        onClick={() => {
-                                                            handleDelete(project.id)
-                                                        }}
-                                                        variant="destructive"
-                                                    >
-                                                        <Trash2 className="size-4" />
-                                                        Delete
-                                                    </DropdownMenuItem>
-                                                </>
-                                            )}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                                {onUpdateStatus && (
+                                                    <>
+                                                        <DropdownMenuItem onClick={() => onStatusChange(project.id, "active")}>
+                                                            <Circle className="size-4" />
+                                                            Mark as Active
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            onClick={() => onStatusChange(project.id, "archived")}
+                                                        >
+                                                            <Clock className="size-4" />
+                                                            Mark as Achieved
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={() => onStatusChange(project.id, "completed")}>
+                                                            <CheckCircle2 className="size-4" />
+                                                            Mark as Completed
+                                                        </DropdownMenuItem>
+                                                    </>
+                                                )}
+                                                {onDelete && (
+                                                    <>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            onClick={() => {
+                                                                handleDelete(project.id)
+                                                            }}
+                                                            variant="destructive"
+                                                        >
+                                                            <Trash2 className="size-4" />
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </>
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
                                 </div>
                                 {project.description && (
@@ -392,3 +399,5 @@ export default function TeamProjects({
         </div>
     );
 }
+
+

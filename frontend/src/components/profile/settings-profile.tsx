@@ -209,7 +209,7 @@ export default function SettingsProfile({
   );
 
 
-  if (!profileUser?._id || isUploadingAvatar) {
+  if (!profileUser?.id || isUploadingAvatar) {
     return (
       <ProfileSettingsSkeleton />
     )

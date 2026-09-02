@@ -2,22 +2,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function ProjectsListSkeleton() {
     return (
-        <div className="mx-auto flex w-full mt-5 max-w-7xl flex-col gap-4 px-4 sm:px-6 lg:px-8">
-            {/* Header */}
-            <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
-                    <Skeleton className="h-7 w-28" />
-                    <Skeleton className="h-4 w-40" />
-                </div>
-                <Skeleton className="h-9 w-full sm:w-32" />
-            </div>
-
-            {/* Search */}
-            <Skeleton className="h-10 w-full rounded-full" />
-
-            {/* Card grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 9 }).map((_, i) => (
+                {Array.from({ length: 6 }).map((_, i) => (
                     <div
                         key={i}
                         className="flex flex-col justify-between gap-3 rounded-lg border bg-card p-4"
@@ -45,6 +31,5 @@ export function ProjectsListSkeleton() {
                     </div>
                 ))}
             </div>
-        </div>
     )
 }

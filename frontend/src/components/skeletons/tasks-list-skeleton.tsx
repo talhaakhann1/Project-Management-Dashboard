@@ -2,27 +2,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function TasksListSkeleton() {
     return (
-        <div className="mx-auto flex w-full mt-5 mb-5 max-w-7xl flex-col gap-4 px-4 sm:px-6 lg:px-8">
-            {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
-                    <Skeleton className="h-7 w-20" />
-                    <Skeleton className="h-4 w-16" />
-                </div>
-                <Skeleton className="h-9 w-full md:w-32" />
-            </div>
-
-            {/* Search */}
-            <Skeleton className="h-9 w-full" />
-
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-2">
-                <Skeleton className="h-9 w-full sm:w-[140px]" />
-                <Skeleton className="h-9 w-full sm:w-[140px]" />
-                <Skeleton className="h-9 w-[140px]" />
-            </div>
-
-            {/* Task list */}
             <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 px-1">
                     <Skeleton className="size-4 rounded-sm" />
@@ -60,6 +39,5 @@ export function TasksListSkeleton() {
                     <Skeleton className="h-8 w-16" />
                 </div>
             </div>
-        </div>
     )
 }

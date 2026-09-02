@@ -79,7 +79,7 @@ export function NavUser({
               <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
             }
           >
-            {authUser && authUser._id ?
+            {authUser && authUser.id ?
               (
                 <>
                   <Avatar className="size-8 rounded-lg">
@@ -123,11 +123,6 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem render={<a href={user.accountSettingUrl} />} >
-                <CircleUserRoundIcon
-                />
-                Profile
-              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => logoutHandler()}>

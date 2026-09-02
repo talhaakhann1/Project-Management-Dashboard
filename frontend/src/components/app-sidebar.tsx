@@ -15,7 +15,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon } from "lucide-react"
+import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon, GalleryVerticalEndIcon, UserIcon } from "lucide-react"
+import { usePathname } from "next/navigation"
 
 const data = {
   user: {
@@ -61,11 +62,10 @@ const data = {
   ],
   navSecondary: [
     {
-      title: "Setting",
-      url: "/",
+      title: "Profile",
+      url: "/dashboard/profile",
       icon: (
-        <Settings2Icon
-        />
+        <UserIcon/>
       ),
     },
     {
@@ -79,6 +79,22 @@ const data = {
   ],
 }
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname()
+
+  const navMain = data.navMain.map((item) => ({
+    ...item,
+    isActive:
+      item.url === "/dashboard"
+        ? pathname === "/dashboard"
+        : pathname.startsWith(item.url),
+  }))
+  const navSecondary = data.navSecondary.map((item) => ({
+    ...item,
+    isActive:
+      item.url === "/dashboard"
+        ? pathname === "/dashboard"
+        : pathname.startsWith(item.url),
+  }))
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -88,15 +104,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:p-1.5!"
               render={<a href="#" />}
             >
-              <CommandIcon className="size-5!" />
+              <GalleryVerticalEndIcon className="size-4" />
               <span className="text-base font-semibold">PlaneFlow</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} />
+        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

@@ -17,6 +17,7 @@ export function NavMain({
   items: {
     title: string
     url: string
+    isActive?: boolean
     icon?: React.ReactNode
   }[]
 }) {
@@ -26,7 +27,9 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-             <SidebarMenuButton  render={<Link href={item.url} />}>
+             <SidebarMenuButton 
+              isActive={item.isActive} 
+             render={<Link href={item.url} />}>
               {item.icon}
               <span>{item.title}</span>
             </SidebarMenuButton>
