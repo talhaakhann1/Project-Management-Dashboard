@@ -137,7 +137,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     rememberMe,
   );
 
- const [loggedInUser] = await User.aggregate([
+  const [loggedInUser] = await User.aggregate([
     {
       $match: {
         _id: new mongoose.Types.ObjectId(user._id),
@@ -149,7 +149,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
         id: "$_id",
         fullName: 1,
         email: 1,
-       isActive:1,
+        isActive: 1,
         avatar: 1,
       },
     },
@@ -186,17 +186,17 @@ export const logOutUser = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user._id;
 
   const user = await User.findByIdAndUpdate(
-     userId,
-     {
-       $unset: {
-         refreshToken: 1,
-       },
-       $set: {
-         isActive: false,
-       },
-     },
-     { new: true },
-   );
+    userId,
+    {
+      $unset: {
+        refreshToken: 1,
+      },
+      $set: {
+        isActive: false,
+      },
+    },
+    { new: true },
+  );
 
   if (!user) {
     throw new ApiError(404, "User not found");
@@ -259,23 +259,25 @@ export const changeUserAvatar = asyncHandler(
 
 export const getCurrentUser = asyncHandler(
   async (req: Request, res: Response) => {
+
     const [user] = await User.aggregate([
-          {
-            $match: {
-              _id: new mongoose.Types.ObjectId(req.user._id),
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              id: "$_id",
-              fullName: 1,
-              email: 1,
-              isActive:1,
-              avatar: 1,
-            },
-          },
-        ]);
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(req.user._id),
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          id: "$_id",
+          fullName: 1,
+          email: 1,
+          isActive: 1,
+          avatar: 1,
+        },
+      },
+    ]);
+
     return res
       .status(200)
       .json(new ApiResponse(200, user, "Current user fetch successfully"));
@@ -324,8 +326,8 @@ export const getTeamMembers = asyncHandler(
           fullName: 1,
           email: 1,
           avatar: 1,
-          isActive:1,
-          createdAt:1
+          isActive: 1,
+          createdAt: 1,
         },
       },
     ]);

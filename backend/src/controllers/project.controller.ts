@@ -7,6 +7,7 @@ import { Project } from "../models/project.model.js";
 import mongoose, { Types } from "mongoose";
 import { ProjectStatus } from "../types/enums/project.enum.js";
 import { Task } from "../models/task.model.js";
+import redisClient from "../config/redis.js";
 
 export const commonProjectAggregationStages = [
   {
@@ -124,6 +125,23 @@ export const getAllProjects = asyncHandler(
     if (!existedUser) {
       throw new ApiError(404, "User does not exist");
     }
+
+    const cacheKey = `projects:${userId}`;
+
+    const cacheProjects = await redisClient.get(cacheKey);
+
+    if (cacheProjects) {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            JSON.parse(cacheProjects) || [],
+            "Projects fetched successfully by redis",
+          ),
+        );
+    }
+
     const projects = await Project.aggregate([
       {
         $match: {
@@ -132,11 +150,13 @@ export const getAllProjects = asyncHandler(
       },
       ...commonProjectAggregationStages,
       {
-        $sort:{
-          createdBy:-1
-        }
-      }
-    ])
+        $sort: {
+          createdBy: -1,
+        },
+      },
+    ]);
+
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(projects));
 
     return res
       .status(200)
@@ -191,6 +211,7 @@ export const deleteProjectById = asyncHandler(
 export const updatedProjectDetails = asyncHandler(
   async (req: Request, res: Response) => {
     const { name, description, colour } = req.body;
+    const userId=req.user._id
     const { projectId } = req.params;
     if (!projectId) {
       throw new ApiError(400, "Project ID is required");
@@ -216,9 +237,13 @@ export const updatedProjectDetails = asyncHandler(
         new: true,
       },
     );
+
     if (!updatedProject) {
       throw new ApiError(400, "Project does not exist");
     }
+
+    await redisClient.del(`projects:${userId}`)
+    await redisClient.del(`project:${projectId}`)
     return res
       .status(200)
       .json(
@@ -241,6 +266,16 @@ export const getProjectById = asyncHandler(
     ) {
       throw new ApiError(400, "Invalid task id");
     }
+    const cacheKey=`projects:${projectId}`
+
+    const cacheProject=await redisClient.get(cacheKey)
+
+    if(cacheProject){
+       return res
+      .status(200)
+      .json(new ApiResponse(200, JSON.parse(cacheProject), "Successfully get projectById by redis"));
+    }
+
     const [project] = await Project.aggregate([
       {
         $match: {
@@ -314,6 +349,13 @@ export const getProjectById = asyncHandler(
     if (!project) {
       throw new ApiError(404, "Project not found");
     }
+
+    await redisClient.setEx(
+      cacheKey,
+      60,
+      JSON.stringify(project)
+    )
+   
     return res
       .status(200)
       .json(new ApiResponse(200, project, "Successfully get projectById"));
@@ -388,8 +430,5 @@ export const changeProjectStatus = asyncHandler(
           "Project status updated successfully",
         ),
       );
-    }
+  },
 );
-  
-
-

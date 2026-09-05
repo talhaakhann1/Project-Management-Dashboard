@@ -6,6 +6,8 @@ import { Project } from "../models/project.model.js";
 import mongoose, { Types } from "mongoose";
 import { Task } from "../models/task.model.js";
 import { TaskStatusEnum } from "../types/enums/task.enum.js";
+import redisClient from "../config/redis.js";
+import { JSONSchema } from "zod/v4/core";
 
 interface ProjectParams {
   projectId?: string;
@@ -139,6 +141,8 @@ export const deleteTaskById = asyncHandler(
   async (req: Request, res: Response) => {
     const { taskId } = req.params;
 
+    const userId=req.user._id
+
     if (!taskId) {
       throw new ApiError(400, "Task ID is required");
     }
@@ -151,7 +155,7 @@ export const deleteTaskById = asyncHandler(
 
     const isTaskCreater = await Task.findOne({
       _id: task._id,
-      createdBy: req.user._id,
+      createdBy: userId,
     });
 
     if (!isTaskCreater) {
@@ -163,6 +167,10 @@ export const deleteTaskById = asyncHandler(
     if (!deleteTask) {
       throw new ApiError(404, "Project does not exist");
     }
+
+    await redisClient.del(`task:${taskId}`)
+    await redisClient.del(`tasks:${userId}`)
+    
     return res
       .status(200)
       .json(new ApiResponse(200, {}, "Task deleted successfully"));
@@ -257,6 +265,19 @@ export const getAllProjectTasks = asyncHandler(
 
 export const getAllTasks = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user._id;
+  const cacheKey=`tasks:${userId}`
+  const cacheTasks=await redisClient.get(cacheKey)
+  if(cacheTasks){
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          JSON.parse(cacheTasks),
+          "Project status updated successfully",
+        ),
+      );
+  }
   const tasks = await Task.aggregate([
     {
       $match: {
@@ -268,6 +289,12 @@ export const getAllTasks = asyncHandler(async (req: Request, res: Response) => {
       $sort: { createdAt: -1 },
     },
   ]);
+
+  await redisClient.setEx(
+    cacheKey,
+    60,
+    JSON.stringify(tasks)
+  )
 
   return res
     .status(200)
@@ -327,6 +354,16 @@ export const getTaskById = asyncHandler(async (req: Request, res: Response) => {
     !Types.ObjectId.isValid(taskId)
   ) {
     throw new ApiError(400, "Invalid task id");
+  }
+
+  const cacheKey=`task:${taskId}`
+
+  const cacheTasks=await redisClient.get(cacheKey)
+
+  if(cacheTasks){
+    return res
+    .status(200)
+    .json(new ApiResponse(200, JSON.parse(cacheTasks), "Successfully get taskById"));
   }
 
   const [task] = await Task.aggregate([
@@ -422,6 +459,12 @@ export const getTaskById = asyncHandler(async (req: Request, res: Response) => {
   if (!task) {
     throw new ApiError(404, "Task not found");
   }
+
+  await redisClient.setEx(
+    cacheKey,
+    60,
+    JSON.stringify(task)
+  )
   return res
     .status(200)
     .json(new ApiResponse(200, task, "Successfully get taskById"));

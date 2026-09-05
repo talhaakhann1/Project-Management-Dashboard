@@ -5,6 +5,7 @@ import { TaskStatusEnum } from "../types/enums/task.enum.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import mongoose from "mongoose";
+import redisClient from "../config/redis.js";
 
 function getPercentChange(current: number, previous: number): number {
   if (previous === 0) {
@@ -14,11 +15,30 @@ function getPercentChange(current: number, previous: number): number {
   return Math.round(change);
 }
 
+
 export const getDashboardStats = asyncHandler(
   async (req: Request, res: Response) => {
     const now = new Date();
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+    const userId=req.user._id
+
+    const cacheKey=`dashboard:stats:${userId}`
+
+    const cacheDashboardStats=await redisClient.get(cacheKey)
+
+    if(cacheDashboardStats){
+      return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          JSON.parse(cacheDashboardStats),
+          "Successfully fetch dashboard stats",
+        ),
+      );
+    }
 
     const taskStats = await Task.aggregate([
       {
@@ -106,6 +126,15 @@ export const getDashboardStats = asyncHandler(
       },
     };
 
+    if(dashboardStats){
+      await redisClient.setEx(
+        cacheKey,
+        60,
+        JSON.stringify(dashboardStats)
+      )
+    }
+    
+
     return res
       .status(200)
       .json(
@@ -127,6 +156,16 @@ export const getTodayTasks = asyncHandler(
     endOfToday.setHours(23, 59, 59, 999);
 
     const userId = req.user._id;
+
+    const cacheKey=`today-tasks:${userId}`
+
+    const cacheTodayTasks=await redisClient.get(cacheKey)
+
+    if(cacheTodayTasks){
+      return res
+      .status(200)
+      .json(new ApiResponse(200, JSON.parse(cacheTodayTasks), "Successfully fetch today-tasks"));
+    }
     const todayTasks = await Task.aggregate([
       {
         $match: {
@@ -158,6 +197,12 @@ export const getTodayTasks = asyncHandler(
       },
     ]);
 
+    await redisClient.setEx(
+      cacheKey,
+      60,
+      JSON.stringify(todayTasks)
+    )
+
     return res
       .status(200)
       .json(new ApiResponse(200, todayTasks, "Successfully fetch today-tasks"));
@@ -174,6 +219,24 @@ export const getWelcomeSummary = asyncHandler(
 
     const in7Days = new Date();
     in7Days.setDate(in7Days.getDate() + 7);
+
+    const userId=req.user._id
+
+    const cacheKey=`welcomeSummary:${userId}`
+
+    const cacheWelcomeSummary=await redisClient.get(cacheKey)
+
+    if(cacheWelcomeSummary){
+      return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          JSON.parse(cacheWelcomeSummary),
+          "Successfully fetch welcome summary",
+        ),
+      );
+    }
 
     const result = await Task.aggregate([
       {
@@ -217,6 +280,12 @@ export const getWelcomeSummary = asyncHandler(
       upcomingDeadlines: extractCount(result[0].upcomingDeadlines),
     };
 
+    await redisClient.setEx(
+      cacheKey,
+      60,
+      JSON.stringify(welcomeSummary)
+    )
+
     return res
       .status(200)
       .json(
@@ -231,7 +300,26 @@ export const getWelcomeSummary = asyncHandler(
 
 export const getAllProjects = asyncHandler(
   async (req: Request, res: Response) => {
+
+
     const userId = req.user._id;
+
+    const cachekey=`projects:${userId}`
+
+    const cacheProjects=await redisClient.get(cachekey)
+
+    if(cacheProjects){
+      return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+           JSON.parse(cacheProjects),
+          "Successfully fetched all projects for dashboard",
+        ),
+      );
+    }
+
     const projects = await Project.aggregate([
       {
         $match: {
@@ -289,6 +377,15 @@ export const getAllProjects = asyncHandler(
         },
       },
     ]);
+
+    if(projects){
+      await redisClient.setEx(
+        cachekey,
+        60,
+        JSON.stringify(projects)
+      )
+    }
+
 
     return res
       .status(200)
