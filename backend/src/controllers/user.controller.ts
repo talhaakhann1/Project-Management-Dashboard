@@ -13,6 +13,7 @@ import jwt from "jsonwebtoken";
 import type { TokenPayload } from "../types/global.js";
 import { Project } from "../models/project.model.js";
 import mongoose from "mongoose";
+import redisClient from "../config/redis.js";
 
 const generateAccessAndRefreshToken = async (
   userId: Types.ObjectId,
@@ -313,6 +314,19 @@ export const getTeamMembers = asyncHandler(
       members: req.user._id,
     });
 
+    const userId = req.user._id;
+
+
+    const cacheKey=`team-members:${userId}`
+
+    const cacheTeamMembers=await redisClient.get(cacheKey)
+
+    if(cacheTeamMembers){
+       return res
+      .status(200)
+      .json(new ApiResponse(200, JSON.parse(cacheTeamMembers), "Team members fetched successfully by redis"))
+    }
+
     const members = await User.aggregate([
       {
         $match: {
@@ -331,6 +345,15 @@ export const getTeamMembers = asyncHandler(
         },
       },
     ]);
+
+    if(members){
+      await redisClient.setEx(
+        cacheKey,
+        60,
+        JSON.stringify(members)
+      )
+    }
+
 
     return res
       .status(200)
