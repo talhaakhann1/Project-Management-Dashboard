@@ -371,7 +371,7 @@ export default function TeamProjects({
 
                                 <div className="flex items-center justify-between">
                                     <div className="flex -space-x-2">
-                                        {project.members.slice(0, 3).map((member) => (
+                                        {project.members?.slice(0, 3).map((member) => (
                                             <Avatar
                                                 className="size-6 border-2 border-background"
                                                 key={member.id}
