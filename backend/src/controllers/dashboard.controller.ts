@@ -304,7 +304,7 @@ export const getAllProjects = asyncHandler(
 
     const userId = req.user._id;
 
-    const cachekey=`projects:${userId}`
+    const cachekey=`dashboard:projects:${userId}`
 
     const cacheProjects=await redisClient.get(cachekey)
 
