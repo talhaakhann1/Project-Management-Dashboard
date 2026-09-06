@@ -127,7 +127,7 @@ export interface TaskListProps {
         assignees?: TaskAssignee[];
         projectId?: string;
     }) => Promise<void>;
-    loading?:boolean;
+    loading?: boolean;
     onTaskSelect?: (taskId: string) => void;
     availableAssignees?: TaskAssignee[],
     availableProjects?: availableProjects[],
@@ -442,7 +442,7 @@ export default function TaskList({
             filtered = filtered.filter(
                 (task) =>
                     task.title.toLowerCase().includes(query) ||
-                    task.description?.toLowerCase().includes(query) 
+                    task.description?.toLowerCase().includes(query)
             );
         }
 
@@ -612,129 +612,101 @@ export default function TaskList({
                 )
             }
             {
-                showBulkActions && selectedTasks.size > 0 && (
-                    <div className="flex items-center gap-2 rounded-lg border bg-muted/30 p-2">
-                        <span className="text-muted-foreground text-sm">
-                            {selectedTasks.size} selected
-                        </span>
-                        <Separator orientation="vertical" />
-                        <div className="flex gap-1">
-                            <Button
-                                onClick={() => handleBulkAction("complete")}
-                                size="sm"
-                                type="button"
-                                variant="outline"
-                            >
-                                Complete
-                            </Button>
-                            <Button
-                                onClick={() => handleBulkAction("delete")}
-                                size="sm"
-                                type="button"
-                                variant="outline"
-                            >
-                                Delete
-                            </Button>
+                loading ? (
+                    <TasksListSkeleton />
+                ) : paginatedTasks.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                        <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                            <Circle className="size-6 text-muted-foreground" />
                         </div>
+
+                        <div className="flex flex-col gap-2">
+                            <p className="font-medium text-sm">
+                                {searchQuery ||
+                                    statusFilter !== "all" ||
+                                    priorityFilter !== "all"
+                                    ? "No tasks match your filters"
+                                    : "No tasks yet"}
+                            </p>
+
+                            <p className="text-muted-foreground text-sm">
+                                {onCreateTask
+                                    ? "Create your first task to get started"
+                                    : "Tasks will appear here"}
+                            </p>
+                        </div>
+
+                        {onCreateTask && (
+                            <Button
+                                onClick={() => setCreateDialogOpen(true)}
+                                type="button"
+                                variant="outline"
+                            >
+                                <Plus className="size-4" />
+                                Create Task
+                            </Button>
+                        )}
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-2">
+                        {showBulkActions && (
+                            <div className="flex items-center gap-2 px-1">
+                                <Checkbox
+                                    checked={allSelected}
+                                    onCheckedChange={handleSelectAll}
+                                />
+
+                                <span className="text-muted-foreground text-xs">
+                                    Select all
+                                </span>
+                            </div>
+                        )}
+
+                        {paginatedTasks.map((task) => (
+                            <TaskItem
+                                key={task.id}
+                                isSelected={selectedTasks.has(task.id)}
+                                onSelect={handleTaskSelect}
+                                onStatusChange={handleStatusChange}
+                                onTaskClick={onTaskSelect || (() => { })}
+                                task={task}
+                            />
+                        ))}
+
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-center gap-2 pt-4">
+                                <Button
+                                    disabled={currentPage === 1}
+                                    onClick={() =>
+                                        setCurrentPage((p) => Math.max(1, p - 1))
+                                    }
+                                    size="sm"
+                                    type="button"
+                                    variant="outline"
+                                >
+                                    Previous
+                                </Button>
+
+                                <span className="text-muted-foreground text-sm">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+
+                                <Button
+                                    disabled={currentPage >= totalPages}
+                                    onClick={() =>
+                                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                                    }
+                                    size="sm"
+                                    type="button"
+                                    variant="outline"
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 )
             }
-            {
-  loading ? (
-    <TasksListSkeleton />
-  ) : paginatedTasks.length === 0 ? (
-    <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-muted">
-        <Circle className="size-6 text-muted-foreground" />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <p className="font-medium text-sm">
-          {searchQuery ||
-          statusFilter !== "all" ||
-          priorityFilter !== "all"
-            ? "No tasks match your filters"
-            : "No tasks yet"}
-        </p>
-
-        <p className="text-muted-foreground text-sm">
-          {onCreateTask
-            ? "Create your first task to get started"
-            : "Tasks will appear here"}
-        </p>
-      </div>
-
-      {onCreateTask && (
-        <Button
-          onClick={() => setCreateDialogOpen(true)}
-          type="button"
-          variant="outline"
-        >
-          <Plus className="size-4" />
-          Create Task
-        </Button>
-      )}
-    </div>
-  ) : (
-    <div className="flex flex-col gap-2">
-      {showBulkActions && (
-        <div className="flex items-center gap-2 px-1">
-          <Checkbox
-            checked={allSelected}
-            onCheckedChange={handleSelectAll}
-          />
-
-          <span className="text-muted-foreground text-xs">
-            Select all
-          </span>
-        </div>
-      )}
-
-      {paginatedTasks.map((task) => (
-        <TaskItem
-          key={task.id}
-          isSelected={selectedTasks.has(task.id)}
-          onSelect={handleTaskSelect}
-          onStatusChange={handleStatusChange}
-          onTaskClick={onTaskSelect || (() => {})}
-          task={task}
-        />
-      ))}
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-4">
-          <Button
-            disabled={currentPage === 1}
-            onClick={() =>
-              setCurrentPage((p) => Math.max(1, p - 1))
-            }
-            size="sm"
-            type="button"
-            variant="outline"
-          >
-            Previous
-          </Button>
-
-          <span className="text-muted-foreground text-sm">
-            Page {currentPage} of {totalPages}
-          </span>
-
-          <Button
-            disabled={currentPage >= totalPages}
-            onClick={() =>
-              setCurrentPage((p) => Math.min(totalPages, p + 1))
-            }
-            size="sm"
-            type="button"
-            variant="outline"
-          >
-            Next
-          </Button>
-        </div>
-      )}
-    </div>
-  )
-}
 
         </div >
     );

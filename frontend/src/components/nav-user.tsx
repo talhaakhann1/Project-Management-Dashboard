@@ -31,17 +31,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { ProfileTriggerSkeleton } from "./skeletons/profile-trigger-skeleton"
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-    accountSettingUrl: string,
-    logoutUrl: string
-  }
-}) {
+export function NavUser() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const { isMobile } = useSidebar()
   const dispatch = useAppDispatch()
@@ -121,7 +111,6 @@ export function NavUser({
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
             <DropdownMenuGroup>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

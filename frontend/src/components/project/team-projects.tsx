@@ -382,10 +382,10 @@ export default function TeamProjects({
                                                 </AvatarFallback>
                                             </Avatar>
                                         ))}
-                                        {project.members.length > 3 && (
+                                        {project.members?.length > 3 && (
                                             <div className="flex size-6 items-center justify-center rounded-full border-2 border-background bg-muted">
                                                 <span className="text-muted-foreground text-xs">
-                                                    +{project.members.length - 3}
+                                                    +{project.members?.length - 3}
                                                 </span>
                                             </div>
                                         )}

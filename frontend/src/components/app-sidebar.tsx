@@ -15,17 +15,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon, GalleryVerticalEndIcon, UserIcon } from "lucide-react"
+import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon, GalleryVerticalEndIcon, UserIcon, Send } from "lucide-react"
 import { usePathname } from "next/navigation"
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-    accountSettingUrl:"/dashboard/profile",
-    logoutUrl:"/dashboard/log-out",
-  },
   navMain: [
     {
       title: "Dashboard",
@@ -65,7 +58,7 @@ const data = {
       title: "Profile",
       url: "/dashboard/profile",
       icon: (
-        <UserIcon/>
+        <UserIcon />
       ),
     },
     {
@@ -102,10 +95,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={<a href="#" />}
+              render={<a href="/" />}
             >
-              <GalleryVerticalEndIcon className="size-4" />
-              <span className="text-base font-semibold">PlaneFlow</span>
+              <div className="relative flex h-8 w-8 items-center justify-center">
+                        <Send
+                          className="h-5 w-5 -rotate-12 text-primary"
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <span className="font-sans text-lg font-semibold tracking-tight text-foreground">
+                        Planeflow
+                      </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -115,7 +116,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   )
