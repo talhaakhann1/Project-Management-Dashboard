@@ -65,12 +65,15 @@ export default function DashboardPage() {
     setIsLoading(true)
     const loadDashboard = async () => {
       try {
+        console.time("stats-totalf");
         const [statsRes, tasksRes, summaryRes, projectRes] = await Promise.all([
           api.get("/api/dashboard/stats"),
           api.get("/api/dashboard/today-tasks"),
           api.get("/api/dashboard/welcome-summary"),
           api.get("/api/dashboard/projects")
         ])
+
+        console.timeEnd("stats-totalf");
 
         setStats(statsRes.data.data);
         setTodayTasks(tasksRes.data.data);

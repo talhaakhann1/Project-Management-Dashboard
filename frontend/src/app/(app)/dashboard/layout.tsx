@@ -8,8 +8,9 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 // import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "Dashboard | PlaneFlow",
-  description: "Personalized dashboard with tasks and projects management",
+  title: "Dashboard | Planeflow",
+  description:
+    "View your Planeflow dashboard to track projects, tasks, progress, and team activity in one place.",
 };
 
 export default function RootLayout({
