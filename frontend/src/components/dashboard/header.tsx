@@ -9,6 +9,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ThemeSwitch } from "../unlumen-ui/theme-switch";
 import { usePathname } from "next/navigation";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const pages = [
   {
@@ -39,6 +41,7 @@ const pages = [
 ]
 
 export function DashboardHeader() {
+  const [isSharing, setIsSharing] = useState(false);
   const pathname = usePathname()
 
   const currentPage = pages.find((page) =>
@@ -46,6 +49,33 @@ export function DashboardHeader() {
       ? pathname === "/dashboard"
       : pathname.startsWith(page.url)
   )
+
+
+  const handleShare = async () => {
+    if (isSharing) return;
+
+    const url = window.location.href;
+
+    try {
+      setIsSharing(true);
+
+      if (navigator.share) {
+        await navigator.share({
+          title: "Planeflow Dashboard",
+          url,
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success("Dashboard link copied!");
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== "AbortError") {
+        console.error("Failed to share:", error);
+      }
+    } finally {
+      setIsSharing(false);
+    }
+  };
   return (
     <header className="flex items-center justify-between gap-4 px-4 sm:px-6 py-3 border-b bg-card sticky top-0 z-10 w-full shrink-0">
       <div className="flex items-center gap-3">
@@ -57,9 +87,18 @@ export function DashboardHeader() {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        <Button variant="outline" size="sm" className="h-8 gap-1.5">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1.5"
+          onClick={handleShare}
+          disabled={isSharing}
+        >
           <HugeiconsIcon icon={Share01Icon} className="size-3.5" />
-          <span className="hidden sm:inline">Share</span>
+
+          <span className="hidden sm:inline">
+            {isSharing ? "Sharing..." : "Share"}
+          </span>
         </Button>
         <Link
           href="https://github.com/talhaakhann1"

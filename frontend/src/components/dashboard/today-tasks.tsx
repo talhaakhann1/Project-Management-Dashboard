@@ -75,9 +75,6 @@ export function TodaysTasks({ todayTasks }: todayTasksProps) {
 
   const hasTaskFilters = tasksProjectFilter.length > 0;
 
-  console.log("Today", todayTasks);
-
-
   if (todayTasks.length < 0) {
     return (
       <div className="rounded-xl border border-border bg-card overflow-hidden h-full">
@@ -145,7 +142,11 @@ export function TodaysTasks({ todayTasks }: todayTasksProps) {
         </div>
       </div>
       <div className="divide-y">
-        {filteredTasks.length === 0 ? (
+        {todayTasks.length === 0 ? (
+          <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+             No tasks due today. You're all caught up!
+          </div>
+        ) : filteredTasks.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">
             No tasks match your search.
           </div>
@@ -153,9 +154,10 @@ export function TodaysTasks({ todayTasks }: todayTasksProps) {
           filteredTasks.map((task) => (
             <div
               key={task.id}
-              className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors"
+              className="flex flex-wrap items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/30"
             >
-              <span className="font-medium text-sm">{task.title}</span>
+              <span className="text-sm font-medium">{task.title}</span>
+
               <div
                 className={cn(
                   "inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium",
@@ -164,7 +166,8 @@ export function TodaysTasks({ todayTasks }: todayTasksProps) {
               >
                 {task.projectName}
               </div>
-              <span className="text-xs text-muted-foreground ml-auto">
+
+              <span className="ml-auto text-xs text-muted-foreground">
                 Due: {formatDate(task.dueDate)}
               </span>
             </div>
