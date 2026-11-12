@@ -2,7 +2,7 @@
 
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -24,6 +24,7 @@ import ApiResponse from "@/types/ApiResponse"
 import { AxiosError } from "axios";
 import { Checkbox } from "@/components/ui/checkbox";
 import { User } from "@/Schemas/user.schema";
+import { useAppSelector } from "@/store/hook";
 
 
 const GoogleIcon = (
@@ -58,6 +59,7 @@ const AppleIcon = (
 export default function SignUpPage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
+  const { user, isLoggedIn } = useAppSelector((state) => state.auth)
 
   const router = useRouter()
 
@@ -82,7 +84,7 @@ export default function SignUpPage() {
 
       toast.message(response.data.message)
       router.replace("/sign-in")
-    
+
     } catch (error) {
       const AxiosError = error as AxiosError<ApiResponse<unknown>>
       let errorMessage = AxiosError.response?.data.message
@@ -94,6 +96,12 @@ export default function SignUpPage() {
       setIsSubmitting(false)
     }
   }
+
+  useEffect(() => {
+    if (user || isLoggedIn) {
+      router.replace("/dashboard");
+    }
+  }, [user, isLoggedIn, router]);
 
   return (
     <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
@@ -196,19 +204,19 @@ export default function SignUpPage() {
           control={form.control}
           render={({ field, fieldState }) => (
             <Field orientation="horizontal" className="justify-center" data-invalid={fieldState.invalid}>
-      
-                <Checkbox
-                  id="remember-me"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  aria-invalid={fieldState.invalid}
-                />
 
-                <FieldLabel
-                  htmlFor={"accept-terms"}
-                  className="whitespace-nowrap font-normal text-muted-foreground [&_a]:font-medium [&_a]:text-foreground [&_a]:underline"
-                  dangerouslySetInnerHTML={{ __html: termsLabel }}
-                />
+              <Checkbox
+                id="remember-me"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                aria-invalid={fieldState.invalid}
+              />
+
+              <FieldLabel
+                htmlFor={"accept-terms"}
+                className="whitespace-nowrap font-normal text-muted-foreground [&_a]:font-medium [&_a]:text-foreground [&_a]:underline"
+                dangerouslySetInnerHTML={{ __html: termsLabel }}
+              />
 
               {fieldState.invalid && (
                 <FieldError errors={[fieldState.error]} />

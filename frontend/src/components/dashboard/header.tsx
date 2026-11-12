@@ -87,6 +87,7 @@ export function DashboardHeader() {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
+         <ThemeSwitch iconSize={16} />
         <Button
           variant="outline"
           size="sm"

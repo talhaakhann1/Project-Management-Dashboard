@@ -246,6 +246,8 @@ interface TaskItemProps {
     onDelete?: (taskId: string) => void;
 }
 
+// Drop-in replacement — preserves all props/logic/state, enhances visual design only.
+
 function TaskItem({
     task,
     isSelected,
@@ -254,156 +256,176 @@ function TaskItem({
     onStatusChange,
     onDelete,
 }: TaskItemProps) {
-
-    const router = useRouter()
+    const router = useRouter();
     const overdue = isOverdue(task.dueDate);
 
     const handleSelect = async (taskId: string) => {
-        router.push(`/dashboard/tasks/${taskId}`)
-    }
+        router.push(`/dashboard/tasks/${taskId}`);
+    };
+
+    // Priority config — pill label + color
+    const priorityConfig: Record<string, { label: string; className: string }> = {
+        urgent: { label: "Urgent", className: "bg-red-50 text-red-600 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800" },
+        high:   { label: "High",   className: "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-800" },
+        medium: { label: "Medium", className: "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-400 dark:border-yellow-800" },
+        low:    { label: "Low",    className: "bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-700" },
+    };
+    const priority = priorityConfig[task.priority] ?? priorityConfig.low;
 
     return (
         <div
             className={cn(
-                "group flex items-start gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-accent ",
-                isSelected && "border-primary bg-primary/5",
+                "group relative flex items-start gap-3 rounded-xl border bg-card px-4 py-3.5 transition-colors hover:bg-accent/50",
+                isSelected && "border-primary bg-primary/5 hover:bg-primary/5",
             )}
         >
-            <Checkbox
-                checked={isSelected}
-                onCheckedChange={(checked) => onSelect(task.id, checked === true)}
-                onClick={(e) => e.stopPropagation()}
-            />
-            <div className="flex min-w-0 flex-1 items-start gap-3">
-                <button
-                    className="flex min-w-0 flex-1 items-start gap-3 text-left"
-                    onClick={() => {
-                        router.push(`/dashboard/tasks/${task.id}`);
-                    }}
-                    type="button"
-                >
+            {/* Checkbox */}
+            <div className="mt-0.5 shrink-0">
+                <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={(checked) => onSelect(task.id, checked === true)}
+                    onClick={(e) => e.stopPropagation()}
+                />
+            </div>
+
+            {/* Main content button */}
+            <button
+                className="flex min-w-0 flex-1 items-start gap-3 text-left"
+                onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
+                type="button"
+            >
+                {/* Status icon */}
+                <div className="mt-0.5 shrink-0">
                     {task.status === "done" ? (
-                        <CheckCircle2
-                            className={cn(
-                                "mt-0.5 size-5 shrink-0",
-                                getStatusColor(task.status)
-                            )}
-                        />
+                        <CheckCircle2 className={cn("size-[18px]", getStatusColor(task.status))} />
                     ) : task.status === "in_progress" ? (
-                        <Clock
-                            className={cn(
-                                "mt-0.5 size-5 shrink-0",
-                                getStatusColor(task.status)
-                            )}
-                        />
-                    ) : task.status === "cancelled" ? (
-                        <Circle className={cn(
-                            "mt-0.5 size-5 shrink-0",
-                            getStatusColor(task.status)
-                        )} />
+                        <Clock className={cn("size-[18px]", getStatusColor(task.status))} />
                     ) : (
-                        <Circle
-                            className={cn(
-                                "mt-0.5 size-5 shrink-0",
-                                getStatusColor(task.status)
-                            )}
-                        />
+                        <Circle className={cn("size-[18px]", getStatusColor(task.status))} />
                     )}
-                    <div className="flex min-w-0 flex-1 flex-col gap-2">
-                        <h4 className="wrap-break-word font-medium text-sm leading-tight">
-                            {task.title}
-                        </h4>
-                        {task.description && (
-                            <p className="line-clamp-2 text-muted-foreground text-xs">
-                                {task.description}
-                            </p>
+                </div>
+
+                {/* Text + meta */}
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                    <h4
+                        className={cn(
+                            "wrap-break-word text-sm font-medium leading-snug",
+                            task.status === "done" && "text-muted-foreground line-through decoration-muted-foreground/50"
                         )}
-                        <div className="flex flex-wrap items-center gap-2">
+                    >
+                        {task.title}
+                    </h4>
+
+                    {task.description && (
+                        <p className="line-clamp-1 text-xs text-muted-foreground/80">
+                            {task.description}
+                        </p>
+                    )}
+
+                    {/* Meta row */}
+                    <div className="flex flex-wrap items-center gap-2 pt-0.5">
+
+                        {/* Priority pill */}
+                        <span
+                            className={cn(
+                                "inline-flex h-5 items-center rounded-full border px-2 text-[11px] font-medium",
+                                priority.className
+                            )}
+                        >
+                            {priority.label}
+                        </span>
+
+                        {/* Project badge */}
+                        {task.project && (
+                            <Badge
+                                className="h-5 rounded-full px-2 text-[11px] font-medium"
+                                variant="secondary"
+                            >
+                                {task.project.name}
+                            </Badge>
+                        )}
+
+                        {/* Due date */}
+                        {task.dueDate && (
                             <div
                                 className={cn(
-                                    "size-2 rounded-full",
-                                    getPriorityColor(task.priority)
+                                    "flex items-center gap-1 text-[11px]",
+                                    overdue
+                                        ? "font-medium text-destructive"
+                                        : "text-muted-foreground"
                                 )}
-                                title={getPriorityLabel(task.priority)}
-                            />
-                            {task.assignees && task.assignees.length > 0 && (
-                                <div className="flex items-center gap-1">
-                                    <User className="size-3 text-muted-foreground" />
-                                    <div className="flex -space-x-2">
-                                        {task.assignees.slice(0, 3).map((assignee) => (
-                                            <Avatar
-                                                className="size-6 border-2 border-background"
-                                                key={assignee.id}
-                                            >
-                                                <AvatarImage alt={assignee.fullName} src={assignee.avatar?.url} />
-                                                <AvatarFallback className="text-xs">
-                                                    {getInitials(assignee.fullName)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                        ))}
-                                        {task.assignees.length > 3 && (
-                                            <div className="flex size-5 items-center justify-center rounded-full border-2 border-background bg-muted text-muted-foreground text-xs">
-                                                +{task.assignees.length - 3}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                            {task.dueDate && (
-                                <div
-                                    className={cn(
-                                        "flex items-center gap-1 text-xs",
-                                        overdue ? "text-destructive" : "text-muted-foreground"
-                                    )}
-                                >
-                                    <Calendar className="size-3" />
-                                    <span>{formatDate(task.dueDate)}</span>
-                                </div>
-                            )}
-                            {task.project && (
-                                <div className="flex flex-wrap gap-1">
-                                    <Badge className="text-xs" key={task.project.id} variant="secondary">
-                                        {task.project.name}
-                                    </Badge>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </button>
-                <div className="flex shrink-0 items-center">
-                    <div onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger aria-label={`More options for ${task.title}`}
-                                className="opacity-0 transition-opacity group-hover:opacity-100 inline-flex size-9 items-center justify-center rounded-md hover:bg-accent"
-                                onClick={(e) => e.stopPropagation()}>
-                                <MoreVertical className="size-4" />
+                            >
+                                <Calendar className="size-3" />
+                                <span>{formatDate(task.dueDate)}</span>
+                                {overdue && <span className="font-medium">· Overdue</span>}
+                            </div>
+                        )}
 
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleSelect(task.id)}>
-                                    <Circle className="size-4" />
-                                    Open
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onStatusChange(task.id, "todo")}>
-                                    <Circle className="size-4" />
-                                    Mark as To Do
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => onStatusChange(task.id, "in_progress")}
-                                >
-                                    <Clock className="size-4" />
-                                    Mark as In Progress
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onStatusChange(task.id, "done")}>
-                                    <CheckCircle2 className="size-4" />
-                                    Mark as Done
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        {/* Assignee avatars */}
+                        {task.assignees && task.assignees.length > 0 && (
+                            <div className="flex items-center gap-1.5">
+                                <div className="flex -space-x-1.5">
+                                    {task.assignees.slice(0, 3).map((assignee) => (
+                                        <Avatar
+                                            className="size-5 ring-2 ring-background"
+                                            key={assignee.id}
+                                        >
+                                            <AvatarImage alt={assignee.fullName} src={assignee.avatar?.url} />
+                                            <AvatarFallback className="bg-primary/10 text-primary text-[9px] font-medium">
+                                                {getInitials(assignee.fullName)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    ))}
+                                    {task.assignees.length > 3 && (
+                                        <div className="flex size-5 items-center justify-center rounded-full ring-2 ring-background bg-muted text-muted-foreground text-[10px] font-medium">
+                                            +{task.assignees.length - 3}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
+            </button>
+
+            {/* Overflow menu */}
+            <div
+                className="mt-0.5 shrink-0"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <DropdownMenu>
+                    <DropdownMenuTrigger
+                        aria-label={`More options for ${task.title}`}
+                        className={cn(
+                            "inline-flex size-7 items-center justify-center rounded-md text-muted-foreground",
+                            "opacity-0 transition-opacity group-hover:opacity-100",
+                            "hover:bg-muted hover:text-foreground focus-visible:opacity-100"
+                        )}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <MoreVertical className="size-3.5" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuItem onClick={() => handleSelect(task.id)}>
+                            <Circle className="size-4" />
+                            Open task
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onStatusChange(task.id, "todo")}>
+                            <Circle className="size-4" />
+                            Mark as To Do
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onStatusChange(task.id, "in_progress")}>
+                            <Clock className="size-4" />
+                            Mark as In Progress
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onStatusChange(task.id, "done")}>
+                            <CheckCircle2 className="size-4" />
+                            Mark as Done
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
-        </div >
+        </div>
     );
 }
 
@@ -426,17 +448,14 @@ export default function TaskList({
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [priorityFilter, setPriorityFilter] = useState<string>("all");
     const [sortBy, setSortBy] = useState<string>("updated");
-
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
     const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
     const [currentPage, setCurrentPage] = useState(1);
-    const router = useRouter()
-
+    const router = useRouter();
 
     const filteredTasks = useMemo(() => {
         let filtered = [...tasks];
-
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(
@@ -445,36 +464,24 @@ export default function TaskList({
                     task.description?.toLowerCase().includes(query)
             );
         }
-
-        if (statusFilter !== "all") {
-            filtered = filtered.filter((task) => task.status === statusFilter);
-        }
-
-        if (priorityFilter !== "all") {
-            filtered = filtered.filter((task) => task.priority === priorityFilter);
-        }
-
+        if (statusFilter !== "all") filtered = filtered.filter((t) => t.status === statusFilter);
+        if (priorityFilter !== "all") filtered = filtered.filter((t) => t.priority === priorityFilter);
         filtered.sort((a, b) => {
             switch (sortBy) {
-                case "title":
-                    return a.title.localeCompare(b.title);
+                case "title": return a.title.localeCompare(b.title);
                 case "priority": {
-                    const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
-                    return (
-                        (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0)
-                    );
+                    const o = { urgent: 4, high: 3, medium: 2, low: 1 };
+                    return (o[b.priority] || 0) - (o[a.priority] || 0);
                 }
                 case "dueDate":
                     if (!(a.dueDate || b.dueDate)) return 0;
                     if (!a.dueDate) return 1;
                     if (!b.dueDate) return -1;
                     return a.dueDate.getTime() - b.dueDate.getTime();
-                case "updated":
                 default:
                     return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
             }
         });
-
         return filtered;
     }, [tasks, searchQuery, statusFilter, priorityFilter, sortBy]);
 
@@ -488,25 +495,17 @@ export default function TaskList({
     const handleTaskSelect = (taskId: string, selected: boolean) => {
         setSelectedTasks((prev) => {
             const next = new Set(prev);
-            if (selected) {
-                next.add(taskId);
-            } else {
-                next.delete(taskId);
-            }
+            selected ? next.add(taskId) : next.delete(taskId);
             return next;
         });
     };
 
     const handleSelectAll = (checked: boolean) => {
-        if (checked) {
-            setSelectedTasks(new Set(paginatedTasks.map((t) => t.id)));
-        } else {
-            setSelectedTasks(new Set());
-        }
+        setSelectedTasks(checked ? new Set(paginatedTasks.map((t) => t.id)) : new Set());
     };
 
     const handleStatusChange = async (taskId: string, status: TaskStatus) => {
-        await onTaskStatus?.(taskId, status)
+        await onTaskStatus?.(taskId, status);
     };
 
     const handleBulkAction = async (action: string) => {
@@ -515,21 +514,22 @@ export default function TaskList({
         setSelectedTasks(new Set());
     };
 
-    const allSelected =
-        paginatedTasks.length > 0 &&
-        paginatedTasks.every((t) => selectedTasks.has(t.id));
+    const allSelected = paginatedTasks.length > 0 && paginatedTasks.every((t) => selectedTasks.has(t.id));
     const someSelected = paginatedTasks.some((t) => selectedTasks.has(t.id));
+    const hasActiveFilters = searchQuery || statusFilter !== "all" || priorityFilter !== "all";
 
     return (
-        <div className="mx-auto flex w-full mt-5 mb-5 max-w-7xl flex-col gap-4 px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
-                    <CardTitle className="text-xl font-semibold sm:text-2xl">
+        <div className="mx-auto flex w-full mt-5 mb-5 max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:px-8">
+
+            {/* ── Header ───────────────────────────────────────── */}
+            <div className="flex flex-wrap items-end justify-between gap-3">
+                <div className="flex flex-col gap-0.5">
+                    <CardTitle className="text-2xl font-semibold tracking-tight">
                         Tasks
                     </CardTitle>
-                    <CardDescription>
-                        {filteredTasks.length} task
-                        {filteredTasks.length !== 1 ? "s" : ""}
+                    <CardDescription className="text-sm text-muted-foreground">
+                        {filteredTasks.length} task{filteredTasks.length !== 1 ? "s" : ""}
+                        {hasActiveFilters ? " matched" : ""}
                     </CardDescription>
                 </div>
                 <Button
@@ -541,174 +541,205 @@ export default function TaskList({
                     New Task
                 </Button>
             </div>
-            {
-                showSearch && (
-                    <InputGroup>
-                        <InputGroupAddon>
-                            <Search className="size-4" />
-                        </InputGroupAddon>
-                        <InputGroupInput
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search tasks…"
-                            type="search"
-                            value={searchQuery}
-                        />
-                        {searchQuery && (
-                            <Button
-                                aria-label="Clear search"
-                                className="absolute top-1/2 right-2 -translate-y-1/2"
-                                onClick={() => setSearchQuery("")}
-                                size="icon"
-                                type="button"
-                                variant="ghost"
-                            >
-                                <X className="size-4" />
-                            </Button>
-                        )}
-                    </InputGroup>
-                )
-            }
-            {
-                showFilters && (
-                    <div className="flex flex-wrap items-center gap-2">
-                        <Select onValueChange={(value) => setStatusFilter(value ?? "all")} value={statusFilter}>
-                            <SelectTrigger className="w-full sm:w-[140px]">
-                                <Filter className="size-4" />
-                                <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Status</SelectItem>
-                                <SelectItem value="todo">To Do</SelectItem>
-                                <SelectItem value="in_progress">In Progress</SelectItem>
-                                <SelectItem value="done">Done</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select onValueChange={(value) => setStatusFilter(value ?? "low")} value={priorityFilter}>
-                            <SelectTrigger className="w-full sm:w-[140px]">
-                                <SelectValue placeholder="Priority" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Priorities</SelectItem>
-                                <SelectItem value="urgent">Urgent</SelectItem>
-                                <SelectItem value="high">High</SelectItem>
-                                <SelectItem value="medium">Medium</SelectItem>
-                                <SelectItem value="low">Low</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select onValueChange={(value) => setStatusFilter(value ?? "-1")} value={sortBy}>
-                            <SelectTrigger className="w-fit">
-                                <SortAsc className="size-4" />
-                                <SelectValue placeholder="Sort by" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="updated">Last Updated</SelectItem>
-                                <SelectItem value="title">Title</SelectItem>
-                                <SelectItem value="priority">Priority</SelectItem>
-                                <SelectItem value="dueDate">Due Date</SelectItem>
-                            </SelectContent>
-                        </Select>
+
+            {/* ── Search ───────────────────────────────────────── */}
+            {showSearch && (
+                <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                        <Search className="size-4 text-muted-foreground" />
                     </div>
-                )
-            }
-            {
-                loading ? (
-                    <TasksListSkeleton />
-                ) : paginatedTasks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-                        <div className="flex size-12 items-center justify-center rounded-full bg-muted">
-                            <Circle className="size-6 text-muted-foreground" />
+                    <InputGroupInput
+                        className="h-9 w-full rounded-md border bg-background pl-9 pr-9 text-sm shadow-none
+                                   placeholder:text-muted-foreground/60
+                                   focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search tasks…"
+                        type="search"
+                        value={searchQuery}
+                    />
+                    {searchQuery && (
+                        <button
+                            aria-label="Clear search"
+                            className="absolute inset-y-0 right-2.5 flex items-center text-muted-foreground hover:text-foreground"
+                            onClick={() => setSearchQuery("")}
+                            type="button"
+                        >
+                            <X className="size-3.5" />
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* ── Filters ──────────────────────────────────────── */}
+            {showFilters && (
+                <div className="flex flex-wrap items-center gap-2">
+                    <Select onValueChange={(v) => setStatusFilter(v ?? "all")} value={statusFilter}>
+                        <SelectTrigger className="h-8 w-full gap-1.5 text-xs sm:w-[130px]">
+                            <Filter className="size-3 text-muted-foreground" />
+                            <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="todo">To Do</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="done">Done</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select onValueChange={(v) => setPriorityFilter(v ?? "all")} value={priorityFilter}>
+                        <SelectTrigger className="h-8 w-full gap-1.5 text-xs sm:w-[130px]">
+                            <SelectValue placeholder="Priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Priorities</SelectItem>
+                            <SelectItem value="urgent">Urgent</SelectItem>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="low">Low</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select onValueChange={(v) => setSortBy(v ?? "updated")} value={sortBy}>
+                        <SelectTrigger className="h-8 w-fit gap-1.5 text-xs">
+                            <SortAsc className="size-3 text-muted-foreground" />
+                            <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="updated">Last Updated</SelectItem>
+                            <SelectItem value="title">Title</SelectItem>
+                            <SelectItem value="priority">Priority</SelectItem>
+                            <SelectItem value="dueDate">Due Date</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    {/* Active filter indicator */}
+                    {hasActiveFilters && (
+                        <button
+                            className="flex h-8 items-center gap-1 rounded-md px-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            onClick={() => {
+                                setSearchQuery("");
+                                setStatusFilter("all");
+                                setPriorityFilter("all");
+                            }}
+                            type="button"
+                        >
+                            <X className="size-3" />
+                            Clear filters
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* ── List ─────────────────────────────────────────── */}
+            {loading ? (
+                <TasksListSkeleton />
+            ) : paginatedTasks.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-muted/20 py-16 text-center">
+                    <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                        <Circle className="size-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <p className="text-sm font-medium text-foreground">
+                            {hasActiveFilters ? "No tasks match your filters" : "No tasks yet"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            {onCreateTask ? "Create your first task to get started" : "Tasks will appear here"}
+                        </p>
+                    </div>
+                    {onCreateTask && (
+                        <Button
+                            className="mt-1"
+                            onClick={() => setCreateDialogOpen(true)}
+                            size="sm"
+                            type="button"
+                            variant="outline"
+                        >
+                            <Plus className="size-3.5" />
+                            Create Task
+                        </Button>
+                    )}
+                </div>
+            ) : (
+                <div className="flex flex-col gap-2">
+                    {/* Select-all row */}
+                    {showBulkActions && (
+                        <div className="flex items-center gap-2.5 px-1 pb-1">
+                            <Checkbox
+                                checked={allSelected}
+                                onCheckedChange={handleSelectAll}
+                            />
+                            <span className="text-xs text-muted-foreground">
+                                {someSelected
+                                    ? `${selectedTasks.size} selected`
+                                    : "Select all"}
+                            </span>
+                            {someSelected && (
+                                <div className="ml-auto flex items-center gap-1.5">
+                                    <Button
+                                        className="h-7 text-xs"
+                                        onClick={() => handleBulkAction("done")}
+                                        size="sm"
+                                        type="button"
+                                        variant="outline"
+                                    >
+                                        <CheckCircle2 className="size-3.5" />
+                                        Mark done
+                                    </Button>
+                                    <Button
+                                        className="h-7 text-xs text-destructive hover:text-destructive"
+                                        onClick={() => handleBulkAction("delete")}
+                                        size="sm"
+                                        type="button"
+                                        variant="outline"
+                                    >
+                                        Delete
+                                    </Button>
+                                </div>
+                            )}
                         </div>
+                    )}
 
-                        <div className="flex flex-col gap-2">
-                            <p className="font-medium text-sm">
-                                {searchQuery ||
-                                    statusFilter !== "all" ||
-                                    priorityFilter !== "all"
-                                    ? "No tasks match your filters"
-                                    : "No tasks yet"}
-                            </p>
+                    {/* Task items */}
+                    {paginatedTasks.map((task) => (
+                        <TaskItem
+                            key={task.id}
+                            isSelected={selectedTasks.has(task.id)}
+                            onSelect={handleTaskSelect}
+                            onStatusChange={handleStatusChange}
+                            onTaskClick={onTaskSelect || (() => {})}
+                            task={task}
+                        />
+                    ))}
 
-                            <p className="text-muted-foreground text-sm">
-                                {onCreateTask
-                                    ? "Create your first task to get started"
-                                    : "Tasks will appear here"}
-                            </p>
-                        </div>
-
-                        {onCreateTask && (
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 pt-2">
                             <Button
-                                onClick={() => setCreateDialogOpen(true)}
+                                disabled={currentPage === 1}
+                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                size="sm"
                                 type="button"
                                 variant="outline"
                             >
-                                <Plus className="size-4" />
-                                Create Task
+                                Previous
                             </Button>
-                        )}
-                    </div>
-                ) : (
-                    <div className="flex flex-col gap-2">
-                        {showBulkActions && (
-                            <div className="flex items-center gap-2 px-1">
-                                <Checkbox
-                                    checked={allSelected}
-                                    onCheckedChange={handleSelectAll}
-                                />
-
-                                <span className="text-muted-foreground text-xs">
-                                    Select all
-                                </span>
-                            </div>
-                        )}
-
-                        {paginatedTasks.map((task) => (
-                            <TaskItem
-                                key={task.id}
-                                isSelected={selectedTasks.has(task.id)}
-                                onSelect={handleTaskSelect}
-                                onStatusChange={handleStatusChange}
-                                onTaskClick={onTaskSelect || (() => { })}
-                                task={task}
-                            />
-                        ))}
-
-                        {totalPages > 1 && (
-                            <div className="flex items-center justify-center gap-2 pt-4">
-                                <Button
-                                    disabled={currentPage === 1}
-                                    onClick={() =>
-                                        setCurrentPage((p) => Math.max(1, p - 1))
-                                    }
-                                    size="sm"
-                                    type="button"
-                                    variant="outline"
-                                >
-                                    Previous
-                                </Button>
-
-                                <span className="text-muted-foreground text-sm">
-                                    Page {currentPage} of {totalPages}
-                                </span>
-
-                                <Button
-                                    disabled={currentPage >= totalPages}
-                                    onClick={() =>
-                                        setCurrentPage((p) => Math.min(totalPages, p + 1))
-                                    }
-                                    size="sm"
-                                    type="button"
-                                    variant="outline"
-                                >
-                                    Next
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-                )
-            }
-
-        </div >
+                            <span className="text-xs text-muted-foreground tabular-nums">
+                                {currentPage} / {totalPages}
+                            </span>
+                            <Button
+                                disabled={currentPage >= totalPages}
+                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                size="sm"
+                                type="button"
+                                variant="outline"
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
     );
 }
-

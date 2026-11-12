@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { useForm, Controller } from "react-hook-form"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { signInSchema } from "@/Schemas/signInSchema"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useRouter } from "next/navigation"
 import api from "@/lib/axios"
 import { toast } from "sonner"
-import { useAppDispatch } from "@/store/hook"
+import { useAppDispatch, useAppSelector } from "@/store/hook"
 import { AxiosError } from "axios"
 import { Checkbox } from "@/components/ui/checkbox";
 import { login } from "@/store/authSlice"
@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const dispatch = useAppDispatch()
   const router = useRouter()
+  const { user, isLoggedIn } = useAppSelector((state) => state.auth)
 
   const legal = 'By signing in, you agree to our <a href="">Terms of Service</a> and <a href="">Privacy Policy</a>.'
 
@@ -62,6 +63,11 @@ export default function LoginPage() {
     }
   }
 
+  useEffect(() => {
+    if (user || isLoggedIn) {
+      router.replace("/dashboard");
+    }
+  }, [user, isLoggedIn, router]);
 
 
   return (

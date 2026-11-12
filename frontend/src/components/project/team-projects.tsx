@@ -50,6 +50,7 @@ import { createProjectSchema } from "@/Schemas/project.schema";
 import { Project } from "@/types/enums/project.enum";
 import { useRouter } from "next/navigation";
 import { ProjectsListSkeleton } from "../skeletons/projects-list-skeleton";
+import { cn } from "@/lib/utils";
 
 export interface TeamProject {
     id: string;
@@ -222,177 +223,217 @@ export default function TeamProjects({
     };
 
     return (
-        <div className="mx-auto flex w-full mt-5 max-w-7xl flex-col gap-4 px-4 sm:px-6 lg:px-8 ">
-            <div className="flex flex-col gap-4">
-                <div className="flex flex-col flex-wrap gap-3 md:flex-row md:items-start md:justify-between">
-                    <div className="flex min-w-0 flex-1 flex-col gap-2">
-                        <CardTitle className="text-xl font-semibold sm:text-2xl">
-                            Projects
-                        </CardTitle>
-                        <CardDescription>
-                            {projects.length} project{projects.length !== 1 ? "s" : ""} in
-                            your team
-                        </CardDescription>
-                    </div>
-                    <Button
-                        className="w-full shrink-0 md:w-auto"
-                        type="button"
-                        onClick={() => router.push("/dashboard/projects/create")}
-                    >
-                        <Plus className="size-4" />
-                        New Project
-                    </Button>
+        // Drop-in replacement — preserves all props/logic, enhances visual design only.
+
+        <div className="mx-auto flex w-full mt-5 max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:px-8">
+
+            {/* ── Header ─────────────────────────────────────────────────── */}
+            <div className="flex flex-wrap items-end justify-between gap-3">
+                <div className="flex flex-col gap-0.5">
+                    <CardTitle className="text-2xl font-semibold tracking-tight">
+                        Projects
+                    </CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                        {projects.length} project{projects.length !== 1 ? "s" : ""} in your team
+                    </CardDescription>
                 </div>
-                {showSearch && (
-                    <InputGroup>
-                        <InputGroupAddon>
-                            <Search className="size-4" />
-                        </InputGroupAddon>
-                        <InputGroupInput
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                setSearchQuery(e.target.value)
-                            }
-                            placeholder="Search projects…"
-                            type="search"
-                            value={searchQuery}
-                        />
-                    </InputGroup>
-                )}
+                <Button
+                    className="w-full shrink-0 md:w-auto"
+                    type="button"
+                    onClick={() => router.push("/dashboard/projects/create")}
+                >
+                    <Plus className="size-4" />
+                    New Project
+                </Button>
             </div>
-            <CardContent>
+
+            {/* ── Search ─────────────────────────────────────────────────── */}
+            {showSearch && (
+                <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                        <Search className="size-4 text-muted-foreground" />
+                    </div>
+                    <InputGroupInput
+                        className="h-9 w-full rounded-md border bg-background pl-9 pr-4 text-sm shadow-none
+                   placeholder:text-muted-foreground/60
+                   focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none
+                   sm:max-w-xs"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setSearchQuery(e.target.value)
+                        }
+                        placeholder="Search projects…"
+                        type="search"
+                        value={searchQuery}
+                    />
+                </div>
+            )}
+
+            {/* ── Grid ───────────────────────────────────────────────────── */}
+            <CardContent className="p-0">
                 {loading ? (
                     <ProjectsListSkeleton />
                 ) : filteredProjects.length === 0 ? (
-                    <Empty>
-                        <EmptyHeader>
-                            <EmptyMedia variant="icon">
-                                <Folder className="size-6" />
-                            </EmptyMedia>
-
-                            <EmptyTitle>
-                                {searchQuery ? "No projects found" : "No projects yet"}
-                            </EmptyTitle>
-                        </EmptyHeader>
-                    </Empty>
+                    /* ── Empty state ── */
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-muted/20 py-16 text-center">
+                        <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted">
+                            <Folder className="size-5 text-muted-foreground" />
+                        </div>
+                        <p className="text-sm font-medium text-foreground">
+                            {searchQuery ? "No projects found" : "No projects yet"}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            {searchQuery ? "Try a different search term" : "Create your first project to get started"}
+                        </p>
+                    </div>
                 ) : (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {filteredProjects.map((project) => (
-                            <div
-                                className="group flex flex-col justify-between gap-3 rounded-lg border bg-card p-4 transition-colors hover:border-primary hover:shadow-sm"
-                                key={project.id}
-                                onClick={() =>
-                                    router.push(`/dashboard/projects/${project.id}`)
-                                }
-                            >
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="flex items-center gap-2">
-                                        <div
-                                            className="flex size-10 items-center justify-center rounded-lg"
-                                            style={{ backgroundColor: `${project.colour}20` }}
-                                        >
-                                            <Folder
-                                                className="size-5"
-                                                style={{ color: project.colour }}
-                                            />
-                                        </div>
-                                        <div className="flex min-w-0 flex-1 flex-col gap-2">
-                                            <h3 className="wrap-break-word font-semibold text-base leading-tight">
-                                                {project.name}
-                                            </h3>
-                                            {project.status && (
-                                                <Badge className="w-fit text-xs" variant="outline">
-                                                    {project.status}
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div onClick={(e) => e.stopPropagation()}>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger aria-label={`More options for ${project.name}`}
-                                                className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent transition-colors"
-                                            >
-                                                {actionLoading === project.id ? (
-                                                    <Loader2 className="size-4 animate-spin" />
-                                                ) : (
-                                                    <MoreVertical className="size-4" />
-                                                )}
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent
-                                                align="end"
-                                                sideOffset={4}
-                                            >
-                                                <DropdownMenuItem onClick={() => handleSelect(project.id)}>
-                                                    <FolderOpen className="size-4" />
-                                                    Open
-                                                </DropdownMenuItem>
-                                                {onUpdateStatus && (
-                                                    <>
-                                                        <DropdownMenuItem onClick={() => onStatusChange(project.id, "active")}>
-                                                            <Circle className="size-4" />
-                                                            Mark as Active
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem
-                                                            onClick={() => onStatusChange(project.id, "archived")}
-                                                        >
-                                                            <Clock className="size-4" />
-                                                            Mark as Achieved
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={() => onStatusChange(project.id, "completed")}>
-                                                            <CheckCircle2 className="size-4" />
-                                                            Mark as Completed
-                                                        </DropdownMenuItem>
-                                                    </>
-                                                )}
-                                                {onDelete && (
-                                                    <>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem
-                                                            onClick={() => {
-                                                                handleDelete(project.id)
-                                                            }}
-                                                            variant="destructive"
-                                                        >
-                                                            <Trash2 className="size-4" />
-                                                            Delete
-                                                        </DropdownMenuItem>
-                                                    </>
-                                                )}
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
-                                </div>
-                                {project.description && (
-                                    <p className="wrap-break-word line-clamp-2 text-muted-foreground text-sm">
-                                        {project.description}
-                                    </p>
-                                )}
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {filteredProjects.map((project) => {
 
-                                <div className="flex items-center justify-between">
-                                    <div className="flex -space-x-2">
-                                        {project.members?.slice(0, 3).map((member) => (
-                                            <Avatar
-                                                className="size-6 border-2 border-background"
-                                                key={member.id}
+                            // Status config
+                            const statusConfig: Record<string, { label: string; className: string }> = {
+                                active: { label: "Active", className: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400" },
+                                completed: { label: "Completed", className: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-400" },
+                                archived: { label: "Archived", className: "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400" },
+                            };
+                            const status = statusConfig[project.status] ?? null;
+
+                            return (
+                                <div
+                                    className="group relative flex flex-col gap-4 rounded-xl border bg-card p-4 transition-all
+                         hover:border-primary/50 hover:shadow-sm cursor-pointer"
+                                    key={project.id}
+                                    onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                                >
+                                    {/* ── Card header ── */}
+                                    <div className="flex items-start justify-between gap-2">
+
+                                        {/* Icon + name + status */}
+                                        <div className="flex min-w-0 flex-1 items-start gap-3">
+                                            {/* Colour icon chip */}
+                                            <div
+                                                className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg"
+                                                style={{ backgroundColor: `${project.colour}18` }}
                                             >
-                                                <AvatarImage alt={member.fullName} src={member.avatar?.url} />
-                                                <AvatarFallback className="text-xs">
-                                                    {getInitials(member.fullName)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                        ))}
-                                        {project.members?.length > 3 && (
-                                            <div className="flex size-6 items-center justify-center rounded-full border-2 border-background bg-muted">
-                                                <span className="text-muted-foreground text-xs">
-                                                    +{project.members?.length - 3}
+                                                <Folder
+                                                    className="size-4"
+                                                    style={{ color: project.colour }}
+                                                />
+                                            </div>
+
+                                            <div className="flex min-w-0 flex-1 flex-col gap-1">
+                                                <h3 className="wrap-break-word text-sm font-semibold leading-snug text-foreground">
+                                                    {project.name}
+                                                </h3>
+                                                {project.status && status && (
+                                                    <span
+                                                        className={cn(
+                                                            "inline-flex h-5 w-fit items-center rounded-full border px-2 text-[11px] font-medium",
+                                                            status.className
+                                                        )}
+                                                    >
+                                                        {status.label}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Overflow menu */}
+                                        <div onClick={(e) => e.stopPropagation()}>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger
+                                                    aria-label={`More options for ${project.name}`}
+                                                    className={cn(
+                                                        "inline-flex size-7 items-center justify-center rounded-md text-muted-foreground",
+                                                        "opacity-0 transition-opacity group-hover:opacity-100",
+                                                        "hover:bg-muted hover:text-foreground focus-visible:opacity-100"
+                                                    )}
+                                                >
+                                                    {actionLoading === project.id ? (
+                                                        <Loader2 className="size-3.5 animate-spin" />
+                                                    ) : (
+                                                        <MoreVertical className="size-3.5" />
+                                                    )}
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-44" sideOffset={4}>
+                                                    <DropdownMenuItem onClick={() => handleSelect(project.id)}>
+                                                        <FolderOpen className="size-4" />
+                                                        Open project
+                                                    </DropdownMenuItem>
+                                                    {onUpdateStatus && (
+                                                        <>
+                                                            <DropdownMenuItem onClick={() => onStatusChange(project.id, "active")}>
+                                                                <Circle className="size-4" />
+                                                                Mark as Active
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => onStatusChange(project.id, "archived")}>
+                                                                <Clock className="size-4" />
+                                                                Mark as Archived
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => onStatusChange(project.id, "completed")}>
+                                                                <CheckCircle2 className="size-4" />
+                                                                Mark as Completed
+                                                            </DropdownMenuItem>
+                                                        </>
+                                                    )}
+                                                    {onDelete && (
+                                                        <>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem
+                                                                onClick={() => handleDelete(project.id)}
+                                                                variant="destructive"
+                                                            >
+                                                                <Trash2 className="size-4" />
+                                                                Delete
+                                                            </DropdownMenuItem>
+                                                        </>
+                                                    )}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </div>
+
+                                    {/* ── Description ── */}
+                                    {project.description && (
+                                        <p className="line-clamp-2 text-xs text-muted-foreground leading-relaxed">
+                                            {project.description}
+                                        </p>
+                                    )}
+
+                                    {/* ── Footer: members ── */}
+                                    <div className="mt-auto flex items-center justify-between pt-1">
+                                        {project.members?.length > 0 ? (
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex -space-x-1.5">
+                                                    {project.members.slice(0, 4).map((member) => (
+                                                        <Avatar
+                                                            className="size-6 ring-2 ring-background"
+                                                            key={member.id}
+                                                        >
+                                                            <AvatarImage alt={member.fullName} src={member.avatar?.url} />
+                                                            <AvatarFallback className="bg-primary/10 text-primary text-[9px] font-medium">
+                                                                {getInitials(member.fullName)}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                    ))}
+                                                    {project.members.length > 4 && (
+                                                        <div className="flex size-6 items-center justify-center rounded-full ring-2 ring-background bg-muted text-muted-foreground text-[10px] font-medium">
+                                                            +{project.members.length - 4}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="text-[11px] text-muted-foreground">
+                                                    {project.members.length} member{project.members.length !== 1 ? "s" : ""}
                                                 </span>
                                             </div>
+                                        ) : (
+                                            <span className="text-[11px] text-muted-foreground/60">No members</span>
                                         )}
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </CardContent>

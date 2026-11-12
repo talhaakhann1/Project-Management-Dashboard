@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import { useAppSelector } from "@/store/hook";
 import dashboardImage from "../../public/image.png"
+import { Hero } from "@/components/dashboard/hero";
+import { useEffect } from "react";
+import Router, { useRouter } from "next/navigation";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -236,89 +239,56 @@ function ProductPreview() {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function PlaneflowOnboardingPage() {
-  const {user,isLoggedIn}=useAppSelector((state)=>state.auth)
+  const { user, isLoggedIn } = useAppSelector((state) => state.auth)
+
+  const router=useRouter()
+
+
+  useEffect(() => {
+    if (user || isLoggedIn) {
+      router.replace("/dashboard");
+    }
+  }, [user, isLoggedIn, router]);
+
+  const buttons = user || isLoggedIn
+    ? [
+      {
+        label: "Return to dashboard",
+        href: "/dashboard",
+        variant: "default" as const,
+        icon: <ArrowRight className="h-4 w-4 ml-2" strokeWidth={2.5} />,
+      },
+    ]
+    : [
+      {
+        label: "Get Started",
+        href: "/sign-up",
+        variant: "default" as const,
+        icon: <ArrowRight className="h-4 w-4 ml-2" strokeWidth={2.5} />,
+      },
+      {
+        label: "Already a member",
+        href: "/sign-in",
+        variant: "outline" as const,
+      },
+    ];
   return (
     <main className="min-h-screen w-full bg-background">
-      <div className="mx-auto flex min-h-screen max-w-[1380px] flex-col px-5 py-8 sm:px-8 lg:flex-row lg:items-center lg:gap-8 lg:px-12 lg:py-10 xl:px-16">
+      <div className="px-5 sm:px-8 lg:px-12 xl:px-16">
+        {/* Logo sits above the hero */}
+        {/* <div className="mx-auto max-w-6xl pt-8 lg:pt-10">
+          <PlaneflowLogo />
+        </div> */}
 
-        {/* ── Left: Hero Content ───────────────────────────────── */}
-        <section className="flex w-full flex-col lg:w-[42%] lg:shrink-0 lg:pr-4 xl:pr-8">
-
-          {/* Logo */}
-          <div className="mb-10 lg:mb-12">
-            <PlaneflowLogo />
-          </div>
-
-          {/* Badge */}
-          <div className="mb-5">
-            <GettingStartedBadge />
-          </div>
-
-          {/* Heading */}
-          <h1 className="mb-5 font-serif text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem] xl:text-[3.75rem]">
-            Welcome to
-            <br />
-            Planeflow
-          </h1>
-
-          {/* Description */}
-          <p className="mb-8 max-w-sm font-sans text-base leading-relaxed text-muted-foreground">
-            Set up your workspace in minutes and start planning,
-            tracking, and shipping projects with your team.
-          </p>
-
-          {/* Feature checklist */}
-          <div className="mb-8">
-            <FeatureList />
-          </div>
-
-          {/* Divider */}
-          <div className="mb-6 h-px w-full bg-border/50" aria-hidden="true" />
-
-          {/* Social proof */}
-          <div className="mb-8">
-            <SocialProof />
-          </div>
-
-          {/* CTAs */}
-          <div className="flex flex-wrap items-center gap-4">
-           {user||isLoggedIn?(
-              <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-sans text-[15px] font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all duration-150 hover:brightness-110 hover:shadow-primary/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
-            >
-              Return to dashboard
-              <ArrowRight className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
-            </Link>
-           ):(
-            <>
-              <Link
-              href="/sign-up"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-sans text-[15px] font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all duration-150 hover:brightness-110 hover:shadow-primary/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
-              >
-              Get Started
-              <ArrowRight className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
-            </Link>
-
-            <Link
-              href="/sign-in"
-              className="font-sans text-[15px] font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            >
-              Already a member
-            </Link>
-           </>
-           )}
-          </div>
-        </section>
-
-        {/* ── Right: Product Visual ────────────────────────────── */}
-        <section
-          className="relative mt-12 flex min-h-[340px] w-full flex-col items-center justify-center lg:mt-0 lg:flex-1"
-          aria-label="Product preview"
-        >
-          <ProductPreview />
-        </section>
-
+        <Hero
+          badge={{ label: "Getting Started", variant: "secondary" }}
+          heading={"Welcome to\nPlaneflow"}
+          description="Set up your workspace in minutes and start planning, tracking, and shipping projects with your team."
+          featureList={<FeatureList />}
+          socialProof={<SocialProof />}
+          buttons={buttons}
+          image={<ProductPreview />}
+        />
       </div>
     </main>
   );
