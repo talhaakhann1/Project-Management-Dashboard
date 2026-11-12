@@ -9,7 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { DashboardStats } from "@/app/(app)/dashboard/page";
 
-// pairs each key in DashboardStats with how it should be displayed
+
 const STAT_META = [
   { key: "totalProjects", title: "Total Projects", icon: Folder01Icon },
   { key: "totalTasks", title: "Total Task", icon: Task01Icon },
@@ -18,7 +18,7 @@ const STAT_META = [
 ] as const;
 
 interface StatsCardsProps {
-  stats: DashboardStats; // the raw object, not an array
+  stats: DashboardStats; 
 }
 
 export function StatsCards({ stats }: StatsCardsProps) {

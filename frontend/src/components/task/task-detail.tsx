@@ -127,7 +127,20 @@ function PriorityBadge({ priority }: { priority: TaskPriority }) {
   );
 }
 
-function StatusBadge({ status }: { status: ProjectStatus }) {
+function getStatusLabel(status: TaskStatusEnum) {
+    switch (status) {
+        case "todo":
+            return "To Do";
+        case "in_progress":
+            return "In Progress";
+        case "done":
+            return "Done";
+        case "cancelled":
+            return "Cancelled";
+    }
+}
+
+function StatusBadge({ status }: { status: TaskStatusEnum }) {
   const map: Record<string, string> = {
     active:    "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800",
     completed: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800",
@@ -144,18 +157,8 @@ function StatusBadge({ status }: { status: ProjectStatus }) {
   );
 }
 
-function getStatusLabel(status: TaskStatusEnum) {
-    switch (status) {
-        case "todo":
-            return "To Do";
-        case "in_progress":
-            return "In Progress";
-        case "done":
-            return "Done";
-        case "cancelled":
-            return "Cancelled";
-    }
-}
+
+
 
 const tabValues = [
     "details",

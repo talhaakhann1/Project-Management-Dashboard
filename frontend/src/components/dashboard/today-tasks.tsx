@@ -26,10 +26,6 @@ const projectColorMap: Record<string, string> = {
   amber: "rounded-lg border border-border bg-muted/50 text-foreground",
 };
 
-// const uniqueProjects = Array.from(
-// //   new Map(todayTasks.map((t) => [t.projectId, { id: t.projectId, name: t.projectName }])).values()
-// // );
-
 interface todayTasksProps {
   todayTasks: todayTasks[];
 }

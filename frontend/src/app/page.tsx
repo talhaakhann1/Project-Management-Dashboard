@@ -16,7 +16,6 @@ import { Hero } from "@/components/dashboard/hero";
 import { useEffect } from "react";
 import Router, { useRouter } from "next/navigation";
 
-// ─── Data ────────────────────────────────────────────────────────────────────
 
 const FEATURES = [
   "Plan projects with ease",
@@ -25,7 +24,7 @@ const FEATURES = [
   "Ship work that matters",
 ];
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
+ 
 
 function PlaneflowLogo() {
   return (
