@@ -274,11 +274,6 @@ export default function PlaneflowOnboardingPage() {
   return (
     <main className="min-h-screen w-full bg-background">
       <div className="px-5 sm:px-8 lg:px-12 xl:px-16">
-        {/* Logo sits above the hero */}
-        {/* <div className="mx-auto max-w-6xl pt-8 lg:pt-10">
-          <PlaneflowLogo />
-        </div> */}
-
         <Hero
           badge={{ label: "Getting Started", variant: "secondary" }}
           heading={"Welcome to\nPlaneflow"}

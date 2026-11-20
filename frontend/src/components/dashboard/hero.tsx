@@ -51,7 +51,7 @@ export function Hero({
                             <h1 className="mb-6 text-4xl font-semibold text-balance md:text-6xl max-w-4xl mx-auto">
                                 {heading}
                                 <Send
-                                    className="inline-block h-[0.6em] w-[0.6em] -rotate-12 text-primary translate-y-[-0.55em] ml-1"
+                                    className="inline-block h-[0.6em] w-[0.6em] -rotate-12 text-primary align-super ml-1"
                                     strokeWidth={2}
                                     aria-hidden="true"
                                 />
