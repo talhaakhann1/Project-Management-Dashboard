@@ -154,18 +154,18 @@ function ProductPreview() {
     <div className="relative flex h-full w-full items-center justify-center">
       {/* Large ambient glow behind artwork */}
       <div
-        className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl"
+        className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl pointer-events-none"
         aria-hidden="true"
       />
       {/* Secondary smaller glow */}
       <div
-        className="absolute right-8 top-16 h-64 w-64 rounded-full bg-primary/8 blur-2xl"
+        className="absolute right-8 top-16 h-64 w-64 rounded-full bg-primary/8 blur-2xl pointer-events-none"
         aria-hidden="true"
       />
 
       {/* Decorative paper-plane icon — top right */}
       <div
-        className="absolute right-4 top-6 text-primary/50 lg:right-0 lg:top-10"
+        className="absolute right-4 top-6 text-primary/50 lg:right-0 lg:top-10 pointer-events-none"
         aria-hidden="true"
       >
         <Send className="h-8 w-8 -rotate-12 text-primary/60" strokeWidth={1.5} />
@@ -173,7 +173,7 @@ function ProductPreview() {
 
       {/* Decorative diamond outline — mid right */}
       <div
-        className="absolute bottom-24 right-2 text-primary/30"
+        className="absolute bottom-24 right-2 text-primary/30 pointer-events-none"
         aria-hidden="true"
       >
         <Diamond className="h-5 w-5 text-primary/40" strokeWidth={1} />
@@ -181,17 +181,17 @@ function ProductPreview() {
 
       {/* Decorative circle outlines */}
       <div
-        className="absolute left-4 top-1/3 h-10 w-10 rounded-full border border-primary/25"
+        className="absolute left-4 top-1/3 h-10 w-10 rounded-full border border-primary/25 pointer-events-none"
         aria-hidden="true"
       />
       <div
-        className="absolute bottom-10 left-10 h-6 w-6 rounded-full border border-primary/20"
+        className="absolute bottom-10 left-10 h-6 w-6 rounded-full border border-primary/20 pointer-events-none"
         aria-hidden="true"
       />
 
       {/* Dotted accent line — decorative */}
       <svg
-        className="absolute right-10 top-1/4 h-20 w-20 text-primary/20"
+        className="absolute right-10 top-1/4 h-20 w-20 text-primary/20 pointer-events-none"
         viewBox="0 0 80 80"
         fill="none"
         aria-hidden="true"
@@ -234,8 +234,6 @@ function ProductPreview() {
     </div>
   );
 }
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function PlaneflowOnboardingPage() {
   const { user, isLoggedIn } = useAppSelector((state) => state.auth)
