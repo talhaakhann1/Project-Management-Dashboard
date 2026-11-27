@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -30,6 +30,9 @@ import {
   CartesianGrid,
   Cell,
 } from "recharts";
+import { api } from "@/lib/api";
+import type { DashboardPerformanceData } from "@/types/dashboard.type";
+import { Spinner } from "@/components/ui/spinner";
 export const dashboardStats = {
   totalProjects: { value: 15, change: 5 },
   totalTasks: { value: 10, change: 2 },
@@ -177,6 +180,71 @@ export function PerformanceChart() {
   const [showGrid, setShowGrid] = useState(true);
   const [smoothCurve, setSmoothCurve] = useState(true);
 
+  // Performance API state
+  const [performanceData, setPerformanceData] = useState<DashboardPerformanceData | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPerformance = useCallback(async (selectedPeriod: Period) => {
+    let active = true;
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const data = await api.getDashboardPerformance(selectedPeriod);
+      if (active && data) {
+        setPerformanceData(data);
+      }
+    } catch (err: unknown) {
+      if (active) {
+        const errorMsg =
+          err && typeof err === "object" && "response" in err
+            ? ((err as { response?: { data?: { message?: string } } }).response?.data?.message ??
+              "Failed to load performance data")
+            : "Failed to load performance data";
+        setError(errorMsg);
+      }
+    } finally {
+      if (active) {
+        setIsLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await api.getDashboardPerformance(period);
+        if (!cancelled && data) {
+          setPerformanceData(data);
+        }
+      } catch (err: unknown) {
+        if (!cancelled) {
+          const errorMsg =
+            err && typeof err === "object" && "response" in err
+              ? ((err as { response?: { data?: { message?: string } } }).response?.data?.message ??
+                "Failed to load performance data")
+              : "Failed to load performance data";
+          setError(errorMsg);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [period]);
+
   const resetToDefault = () => {
     setChartType("bar");
     setPeriod("7d");
@@ -184,13 +252,28 @@ export function PerformanceChart() {
     setSmoothCurve(true);
   };
 
-  // Pour l'instant, on garde les mêmes données quel que soit period
-  const data = performanceChartData;
+  // Derive dynamic chart values from API or empty fallback
+  const rawChartData = performanceData?.chartData || [];
+  const maxVal = rawChartData.length > 0 ? Math.max(...rawChartData.map((x) => x.value)) : 0;
+  const data = rawChartData.map((d) => ({
+    ...d,
+    isHighlight: maxVal > 0 && d.value === maxVal,
+  }));
+
+  const score = performanceData?.score ?? 0;
+  const change = performanceData?.change ?? 0;
+  const periodLabel = period === "7d" ? "vs last Week" : "vs last Month";
+  const changeSign = change > 0 ? `+${change}` : `${change}`;
+
+  const hasEmptyData = !isLoading && !error && (!rawChartData.length || rawChartData.every((d) => d.value === 0));
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-b">
-        <h3 className="font-medium text-base">Performance</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-medium text-base">Performance</h3>
+          {isLoading && <Spinner className="size-3.5 text-muted-foreground animate-spin" />}
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -243,76 +326,108 @@ export function PerformanceChart() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
       <div className="p-4">
-        <div className="flex items-baseline gap-2 mb-4">
-          <span className="text-3xl font-semibold">{performanceScore}%</span>
-          <span className="text-sm text-muted-foreground">
-            +{performanceChange}% vs last Week
-          </span>
-        </div>
-        <ChartContainer config={chartConfig} className="h-[175px] w-full">
-          {chartType === "bar" ? (
-            <BarChart
-              data={data}
-              margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+        {error ? (
+          <div className="h-[215px] flex flex-col items-center justify-center gap-2 text-center p-4">
+            <p className="text-xs text-destructive">{error}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => fetchPerformance(period)}
             >
-              {showGrid && (
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="var(--border)"
-                  vertical={false}
-                />
-              )}
-              <XAxis
-                dataKey="day"
-                tickLine={false}
-                axisLine={false}
-                tick={{ fontSize: 11 }}
-              />
-              <YAxis hide domain={[0, 100]} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]} strokeWidth={0}>
-                {data.map((entry, index) => (
-                  <Cell key={entry.day} fill={barColors[index]} />
-                ))}
-              </Bar>
-            </BarChart>
-          ) : (
-            <LineChart
-              data={data}
-              margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
-            >
-              {showGrid && (
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="var(--border)"
-                  vertical={false}
-                />
-              )}
-              <XAxis
-                dataKey="day"
-                tickLine={false}
-                axisLine={false}
-                tick={{ fontSize: 11 }}
-              />
-              <YAxis hide domain={[0, 100]} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Line
-                type={smoothCurve ? "monotone" : "linear"}
-                dataKey="value"
-                stroke="var(--foreground)"
-                strokeWidth={2}
-                dot={false}
-                activeDot={{
-                  r: 6,
-                  fill: "var(--foreground)",
-                  stroke: "var(--card)",
-                  strokeWidth: 2,
-                }}
-              />
-            </LineChart>
-          )}
-        </ChartContainer>
+              Retry
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-baseline gap-2 mb-4">
+              <span className="text-3xl font-semibold">{score}%</span>
+              <span className="text-sm text-muted-foreground">
+                {changeSign}% {periodLabel}
+              </span>
+            </div>
+
+            {hasEmptyData ? (
+              <div className="h-[175px] w-full flex flex-col items-center justify-center text-center p-4 border border-dashed rounded-lg bg-muted/20">
+                <p className="text-xs font-medium text-muted-foreground">
+                  No completed task activity in this period
+                </p>
+                <span className="text-[11px] text-muted-foreground/70 mt-1">
+                  Complete tasks to see your daily performance score
+                </span>
+              </div>
+            ) : (
+              <ChartContainer config={chartConfig} className="h-[175px] w-full">
+                {chartType === "bar" ? (
+                  <BarChart
+                    data={data}
+                    margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+                  >
+                    {showGrid && (
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="var(--border)"
+                        vertical={false}
+                      />
+                    )}
+                    <XAxis
+                      dataKey="day"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fontSize: 11 }}
+                    />
+                    <YAxis hide domain={[0, 100]} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]} strokeWidth={0}>
+                      {data.map((entry) => (
+                        <Cell
+                          key={entry.day + entry.date}
+                          fill={entry.isHighlight ? "var(--foreground)" : "var(--muted-foreground)"}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                ) : (
+                  <LineChart
+                    data={data}
+                    margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+                  >
+                    {showGrid && (
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="var(--border)"
+                        vertical={false}
+                      />
+                    )}
+                    <XAxis
+                      dataKey="day"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fontSize: 11 }}
+                    />
+                    <YAxis hide domain={[0, 100]} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Line
+                      type={smoothCurve ? "monotone" : "linear"}
+                      dataKey="value"
+                      stroke="var(--foreground)"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{
+                        r: 6,
+                        fill: "var(--foreground)",
+                        stroke: "var(--card)",
+                        strokeWidth: 2,
+                      }}
+                    />
+                  </LineChart>
+                )}
+              </ChartContainer>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

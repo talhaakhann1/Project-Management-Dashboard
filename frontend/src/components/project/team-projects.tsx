@@ -223,7 +223,6 @@ export default function TeamProjects({
     };
 
     return (
-        // Drop-in replacement — preserves all props/logic, enhances visual design only.
 
         <div className="mx-auto flex w-full mt-5 max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:px-8">
 

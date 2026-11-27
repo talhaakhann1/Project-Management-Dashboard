@@ -82,7 +82,6 @@ export function Hero({
                                             variant="default"
                                             size="lg"
                                             render={<Link href={button.href} />}
-                                            nativeButton={false}
                                         >
                                             {button.label}
                                             {button.icon}

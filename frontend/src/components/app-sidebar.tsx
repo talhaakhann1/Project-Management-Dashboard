@@ -15,8 +15,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon, GalleryVerticalEndIcon, UserIcon, Send } from "lucide-react"
+import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon, GalleryVerticalEndIcon, UserIcon, Send, User } from "lucide-react"
 import { usePathname } from "next/navigation"
+import { MessageSquare } from "lucide-react";
+import { Chat01FreeIcons, Chat01Icon, ChatIcon } from "@hugeicons/core-free-icons"
 
 const data = {
   navMain: [
@@ -49,6 +51,14 @@ const data = {
       url: "/dashboard/teams",
       icon: (
         <UsersIcon
+        />
+      ),
+    },
+    {
+      title: "Chat",
+      url: "/dashboard/chat",
+      icon: (
+        <MessageSquare
         />
       ),
     },
