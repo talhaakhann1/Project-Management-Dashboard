@@ -1,18 +1,26 @@
-import app from "./app.js";
+import { server } from "./app.js";
 import dotenv from "dotenv";
-import { connectDB } from "./db/index.js"
+import { v2 as cloudinary } from "cloudinary";
+import { connectDB } from "./db/index.js";
 import { connectRedis } from "./config/redis.js";
 
 dotenv.config({
   path: "./.env",
 });
 
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
+  api_key: process.env.CLOUDINARY_API_KEY!,
+  api_secret: process.env.CLOUDINARY_API_SECRET!,
+});
+
+
 const PORT = process.env.PORT || 8000;
 
-connectDB()
+connectDB();
 connectRedis()
   .then(() => {
-    const server = app.listen(PORT, () => {
+     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
 
