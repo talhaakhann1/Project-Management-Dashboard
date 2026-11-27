@@ -13,11 +13,12 @@ import { validate } from "../Schemas/validate.js";
 import { verifyJwt } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
 import { getTeamMembers } from "../controllers/user.controller.js";
+import { authRateLimiter } from "../middleware/rateLimiter.middleware.js";
 
 const router=Router()
 
-router.route('/sign-up').post(validate(signUpSchema),registerUser)
-router.route('/sign-in').post(validate(signInSchema),loginUser)
+router.route('/sign-up').post(authRateLimiter,validate(signUpSchema),registerUser)
+router.route('/sign-in').post(authRateLimiter,validate(signInSchema),loginUser)
 router.route('/logout').post(verifyJwt,logOutUser)
 router.route('/refresh-token').get(refreshAccessToken)
 router.route('/change-avatar').post(verifyJwt,upload.single("avatar"),changeUserAvatar)

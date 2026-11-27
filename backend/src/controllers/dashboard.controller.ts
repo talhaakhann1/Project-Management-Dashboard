@@ -3,6 +3,7 @@ import { Task } from "../models/task.model.js";
 import { Project } from "../models/project.model.js";
 import { TaskStatusEnum } from "../types/enums/task.enum.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import mongoose from "mongoose";
 import redisClient from "../config/redis.js";
@@ -394,6 +395,211 @@ export const getAllProjects = asyncHandler(
           200,
           projects || [],
           "Successfully fetched all projects for dashboard",
+        ),
+      );
+  },
+);
+
+export const getDashboardPerformance = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { period = "7d" } = req.query;
+
+    if (period !== "7d" && period !== "30d") {
+      throw new ApiError(400, "Invalid period. Period must be '7d' or '30d'");
+    }
+
+    const userId = req.user._id;
+    const cacheKey = `dashboard:performance:${userId}:${period}`;
+
+    try {
+      const cached = await redisClient.get(cacheKey);
+      if (cached) {
+        return res
+          .status(200)
+          .json(
+            new ApiResponse(
+              200,
+              JSON.parse(cached),
+              "Successfully fetched dashboard performance data",
+            ),
+          );
+      }
+    } catch {
+      // Redis error fallback: continue without cache
+    }
+
+    const numDays = period === "7d" ? 7 : 30;
+    const now = new Date();
+
+    const currentEnd = new Date(now);
+    currentEnd.setHours(23, 59, 59, 999);
+
+    const currentStart = new Date(now);
+    currentStart.setDate(currentStart.getDate() - (numDays - 1));
+    currentStart.setHours(0, 0, 0, 0);
+
+    const previousEnd = new Date(currentStart.getTime() - 1);
+    const previousStart = new Date(previousEnd);
+    previousStart.setDate(previousStart.getDate() - (numDays - 1));
+    previousStart.setHours(0, 0, 0, 0);
+
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+
+    const statsResult = await Task.aggregate([
+      {
+        $match: {
+          $or: [{ assignees: userObjectId }, { createdBy: userObjectId }],
+        },
+      },
+      {
+        $facet: {
+          currentCompleted: [
+            {
+              $match: {
+                status: TaskStatusEnum.DONE,
+                updatedAt: { $gte: currentStart, $lte: currentEnd },
+              },
+            },
+            { $count: "count" },
+          ],
+          currentTotal: [
+            {
+              $match: {
+                createdAt: { $lte: currentEnd },
+              },
+            },
+            { $count: "count" },
+          ],
+          previousCompleted: [
+            {
+              $match: {
+                status: TaskStatusEnum.DONE,
+                updatedAt: { $gte: previousStart, $lte: previousEnd },
+              },
+            },
+            { $count: "count" },
+          ],
+          previousTotal: [
+            {
+              $match: {
+                createdAt: { $lte: previousEnd },
+              },
+            },
+            { $count: "count" },
+          ],
+          dailyCompleted: [
+            {
+              $match: {
+                status: TaskStatusEnum.DONE,
+                updatedAt: { $gte: currentStart, $lte: currentEnd },
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  $dateToString: { format: "%Y-%m-%d", date: "$updatedAt" },
+                },
+                completedCount: { $sum: 1 },
+              },
+            },
+          ],
+          dailyCreated: [
+            {
+              $match: {
+                createdAt: { $lte: currentEnd },
+              },
+            },
+            {
+              $project: {
+                createdDate: {
+                  $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+                },
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    const facet = statsResult[0] || {};
+    const currentCompletedCount = facet.currentCompleted?.[0]?.count ?? 0;
+    const currentTotalCount = facet.currentTotal?.[0]?.count ?? 0;
+    const previousCompletedCount = facet.previousCompleted?.[0]?.count ?? 0;
+    const previousTotalCount = facet.previousTotal?.[0]?.count ?? 0;
+
+    const score =
+      currentTotalCount > 0
+        ? Math.round((currentCompletedCount / currentTotalCount) * 100)
+        : 0;
+
+    const previousScore =
+      previousTotalCount > 0
+        ? Math.round((previousCompletedCount / previousTotalCount) * 100)
+        : 0;
+
+    const change = score - previousScore;
+
+    const dailyCompletedMap = new Map<string, number>();
+    (facet.dailyCompleted || []).forEach(
+      (item: { _id: string; completedCount: number }) => {
+        dailyCompletedMap.set(item._id, item.completedCount);
+      },
+    );
+
+    const allCreatedDates: string[] = (facet.dailyCreated || []).map(
+      (item: { createdDate: string }) => item.createdDate,
+    );
+
+    const dayFormatter = new Intl.DateTimeFormat("en-US", { weekday: "short" });
+    const chartData = [];
+
+    for (let i = 0; i < numDays; i++) {
+      const d = new Date(currentStart);
+      d.setDate(d.getDate() + i);
+
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+      const dayName = dayFormatter.format(d);
+
+      const completedOnDay = dailyCompletedMap.get(dateStr) || 0;
+      // Cumulative total tasks created up to this date
+      const totalUpToDay = allCreatedDates.filter((cDate) => cDate <= dateStr)
+        .length;
+
+      const dayValue =
+        totalUpToDay > 0
+          ? Math.min(100, Math.round((completedOnDay / totalUpToDay) * 100))
+          : 0;
+
+      chartData.push({
+        day: dayName,
+        date: dateStr,
+        value: dayValue,
+      });
+    }
+
+    const performanceData = {
+      score,
+      change,
+      period,
+      chartData,
+    };
+
+    try {
+      await redisClient.setEx(cacheKey, 60, JSON.stringify(performanceData));
+    } catch {
+      throw new ApiError(500, "Failed to cache dashboard performance data");
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          performanceData,
+          "Successfully fetched dashboard performance data",
         ),
       );
   },

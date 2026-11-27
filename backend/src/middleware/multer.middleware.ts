@@ -1,18 +1,29 @@
 import multer from "multer";
-import os from "os";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
 import type { Request } from "express";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Resolve to <project-root>/backend/public/temp — consistent with getLocalPath()
+const TEMP_DIR = path.resolve(__dirname, "../../public/temp");
+
+// Ensure the directory exists at startup
+fs.mkdirSync(TEMP_DIR, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (
-    req: Request,
-    file: Express.Multer.File,
+    _req: Request,
+    _file: Express.Multer.File,
     cb
   ) => {
-    cb(null, os.tmpdir());
+    cb(null, TEMP_DIR);
   },
 
   filename: (
-    req: Request,
+    _req: Request,
     file: Express.Multer.File,
     cb
   ) => {

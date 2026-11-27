@@ -4,14 +4,15 @@ import {
   getTodayTasks,
   getWelcomeSummary,
   getAllProjects,
+  getDashboardPerformance,
 } from "../controllers/dashboard.controller.js";
 import { verifyJwt } from "../middleware/auth.middleware.js";
 const router = Router();
 
-router.route("/stats").get( verifyJwt,getDashboardStats);
+router.route("/stats").get(verifyJwt, getDashboardStats);
 router.route("/today-tasks").get(verifyJwt, getTodayTasks);
 router.route("/welcome-summary").get(verifyJwt, getWelcomeSummary);
-router.route("/projects").get(verifyJwt,getAllProjects)
-
+router.route("/projects").get(verifyJwt, getAllProjects);
+router.route("/performance").get(verifyJwt, getDashboardPerformance);
 
 export default router;
