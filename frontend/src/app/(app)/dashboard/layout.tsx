@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { DashboardHeader } from "@/components/dashboard/header";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AuthInitializer from "@/app/AuthInitializer";
+import { ChatProvider } from "@/context/chat-context";
 // import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
@@ -23,26 +24,28 @@ export default function RootLayout({
   return (
     <AuthInitializer>
       <ProtectedRoute>
-        <SidebarProvider
-          style={
-            {
-              "--sidebar-width": "calc(var(--spacing) * 56)",
-              "--header-height": "calc(var(--spacing) * 12)",
-            } as React.CSSProperties
-          }
-        >
-          <AppSidebar variant="inset" />
+        <ChatProvider>
+          <SidebarProvider
+            style={
+              {
+                "--sidebar-width": "calc(var(--spacing) * 56)",
+                "--header-height": "calc(var(--spacing) * 12)",
+              } as React.CSSProperties
+            }
+          >
+            <AppSidebar variant="inset" />
 
-          <div className="flex h-svh min-w-0 flex-1 flex-col lg:p-2">
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background lg:rounded-md lg:border">
-              <DashboardHeader />
+            <div className="flex h-svh min-w-0 flex-1 flex-col lg:p-2">
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background lg:rounded-md lg:border">
+                <DashboardHeader />
 
-              <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
-                {children}
-              </main>
+                <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
+                  {children}
+                </main>
+              </div>
             </div>
-          </div>
-        </SidebarProvider>
+          </SidebarProvider>
+        </ChatProvider>
       </ProtectedRoute>
     </AuthInitializer>
   );

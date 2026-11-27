@@ -326,7 +326,8 @@ function CreateTask() {
                     >
                         Cancel
                     </Button>
-                    <Button type="submit" aria-busy={isCreating} data-loading={isCreating}>
+                    <Button type="submit"
+                    aria-busy={isCreating}  data-loading={isCreating}>
                         {isCreating ? (
                             <>
                                 <Loader2 className="size-4 animate-spin" />
