@@ -7,18 +7,27 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
 
+const safeUnlink = async (localPath: string): Promise<void> => {
+  try {
+    await fs.unlink(localPath);
+  } catch {
+    // File already removed or never existed — ignore ENOENT and other errors
+  }
+};
+
 export const uploadAtCloudinary = async (
   localPath: string,
-): Promise<UploadApiResponse|null> => {
+): Promise<UploadApiResponse | null> => {
+  if (!localPath) return null;
   try {
-    if (!localPath) return null;
     const response = await cloudinary.uploader.upload(localPath, {
-      resource_type: "image",
+      resource_type: "auto",
     });
-    fs.unlink(localPath);
+    await safeUnlink(localPath);
     return response;
-  } catch (error:unknown) {
-    fs.unlink(localPath);
+  } catch {
+    await safeUnlink(localPath);
     return null;
   }
 };
+

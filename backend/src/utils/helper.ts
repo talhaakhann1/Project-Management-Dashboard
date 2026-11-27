@@ -4,11 +4,14 @@ import fs from "fs/promises";
 export const removeLocalFile = async (
   localPath: string
 ): Promise<void> => {
+  if (!localPath) return;
   try {
     await fs.unlink(localPath);
     console.info("Removed local:", localPath);
   } catch (err: unknown) {
-    console.error("Error while removing local file:", err);
+    if ((err as NodeJS.ErrnoException)?.code !== "ENOENT") {
+      console.error("Error while removing local file:", err);
+    }
   }
 };
 
