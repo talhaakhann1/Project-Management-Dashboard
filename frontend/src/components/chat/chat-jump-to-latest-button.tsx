@@ -3,13 +3,12 @@
 import { ArrowDownIcon } from "lucide-react";
 import type { ReactElement, ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { Button, type ButtonProps } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
-export type ChatJumpToLatestButtonProps = Omit<
-  ButtonProps,
-  "children" | "size" | "variant"
-> & {
+export type ChatJumpToLatestButtonProps = {
+  className?: string;
   children: ReactNode;
+  [key: string]: unknown;
 };
 
 export function ChatJumpToLatestButton({
