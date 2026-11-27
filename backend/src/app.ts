@@ -26,26 +26,23 @@ export const server = http.createServer(app);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.CORS_ORIGIN,
+].filter((origin): origin is string => Boolean(origin));
+
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:3000",
-      "http://127.0.0.1:3000",
-      "http://localhost:5173",
-      "http://localhost:8000",
-      "http://localhost:8080",
-    ],
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST"],
   },
-  // ✅ Add these options
-  allowEIO3: true,
+
   transports: ["polling", "websocket"],
 });
 
 const pubClient = createClient({
   url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
-  RESP: 2,
 });
 
 const subClient = pubClient.duplicate();
@@ -66,10 +63,6 @@ await Promise.all([
 
 io.adapter(createAdapter(pubClient, subClient));
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  process.env.CORS_ORIGIN,
-].filter((origin): origin is string => Boolean(origin));
 
 app.use(
   cors({
